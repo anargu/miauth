@@ -28,8 +28,8 @@ function settingUpEndpoints (app) {
         }
         // if user exists then validate password
         try {
-            const res = await bcrypt.compare(password, user.hash)
-            if (res === true) {
+            const result = await bcrypt.compare(password, user.hash)
+            if (result === true) {
                 const token = await utils.tokenize({ user_email: email })
                 res.status(200).json({
                     status: 'ok',
@@ -45,7 +45,7 @@ function settingUpEndpoints (app) {
         } catch (error) {
             res.status(500).json(utils.errorMessage(
                 'Something went wrong. Please try again in a moment.',
-                'fail on verifying password',
+                'fail on verifying password ' + error.toString(),
                 700
             ))
         }
