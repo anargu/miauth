@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize')
-const initializeModel = require('./models').initializeModel
+const initializeModels = require('./models').initializeModels
 
 const POSTGRES_USER = process.env.POSTGRES_USER
 const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD
@@ -22,8 +22,7 @@ async function initDatabase () {
         })
 
     // init model
-    initializeModel(sequelize)
-    await sequelize.sync()
+    initializeModels(sequelize)
 }
 
 module.exports = {

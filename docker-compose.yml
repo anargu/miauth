@@ -31,7 +31,23 @@ services:
       - "5432:5432"
     volumes:
       - postgre-db:/var/lib/postgresql/data
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    volumes:
+       - pgadmin:/root/.pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5002}:80"
+    networks:
+      - backend
+    restart: unless-stopped
+    depends_on:
+      - postgre-db
 volumes:
   postgre-db:
+  pgadmin:
 networks:
   backend:
