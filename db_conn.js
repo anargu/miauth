@@ -1,10 +1,17 @@
 const Sequelize = require('sequelize')
 const initializeModel = require('./models').initializeModel
 
+const POSTGRES_USER = process.env.POSTGRES_USER
+const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD
+const POSTGRES_HOST = process.env.POSTGRES_HOST
+const POSTGRES_PORT = process.env.POSTGRES_PORT
+const POSTGRES_DB = process.env.POSTGRES_DB
+
 let sequelize = null
 
-function initDatabase () {
-    sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname',
+async function initDatabase () {
+    sequelize = new Sequelize(
+        `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}`,
         {
             pool: {
                 max: 5,
@@ -16,6 +23,7 @@ function initDatabase () {
 
     // init model
     initializeModel(sequelize)
+    await sequelize.sync()
 }
 
 module.exports = {

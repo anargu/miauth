@@ -2,7 +2,7 @@ const express = require('express')
 const User = require('./models').User
 const utils = require('./utils')
 
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs')
 const saltRounds = parseInt(process.env.SALT) || 10
 
 function settingUpEndpoints (app) {

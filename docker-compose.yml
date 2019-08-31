@@ -1,0 +1,37 @@
+version: '3'
+services:
+  miauth:
+    image: anargu101/miauth:0.0.1
+    ports:
+      - "5001:5001"
+    depends_on:
+      - postgre-db
+    networks: 
+      - backend
+    environment: 
+      SALT: '10'
+      JWT_EXP_OFFSET: '86400'
+      JWT_SECRET: m14uth
+      PORT: 5001
+      POSTGRES_USER: miauth
+      POSTGRES_PASSWORD: m14uthdb
+      POSTGRES_HOST: postgre-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: 'miauth-db'
+  postgre-db:
+    image: postgres:12
+    restart: always
+    networks: 
+      - backend
+    environment:
+      POSTGRES_USER: miauth
+      POSTGRES_PASSWORD: m14uthdb
+      POSTGRES_DB: 'miauth-db'
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgre-db:/var/lib/postgresql/data
+volumes:
+  postgre-db:
+networks:
+  backend:

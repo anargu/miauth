@@ -2,7 +2,7 @@ const Sequelize = require('sequelize')
 
 class User extends Sequelize.Model {}
 
-function initializeModel(sequelize) {
+function initializeModel (sequelize) {
     User.init({
         id: {
             type: Sequelize.UUID,
@@ -16,7 +16,7 @@ function initializeModel(sequelize) {
         hash: Sequelize.STRING
     }, {
         sequelize
-    })    
+    })
 }
 
 module.exports = {

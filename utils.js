@@ -9,7 +9,7 @@ function errorMessage (userMessage = '', message = '', code = 100) {
 }
 
 function expirationOffset () {
-    return Math.floor(Date.now() / 1000) + (process.env.JWT_EXP_OFFSET || (5 * 60 * 60))
+    return Math.floor(Date.now() / 1000) + (parseInt(process.env.JWT_EXP_OFFSET) || (5 * 60 * 60))
 }
 
 async function tokenize (payload = {}) {
