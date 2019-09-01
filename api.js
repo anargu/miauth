@@ -85,7 +85,8 @@ function settingUpEndpoints (app) {
             ))
         } else {
             res.status(200).json({
-                status: 'ok'
+                status: 'ok',
+                payload: result.payload
             })
         }
     })
