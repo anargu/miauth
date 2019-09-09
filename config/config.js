@@ -1,15 +1,15 @@
 module.exports = {
     development: {
-        username: 'dev_user',
-        password: 'd3v',
+        username: process.env.POSTGRES_USER,
+        password: process.env.POSTGRES_PASSWORD,
         database: 'db_dev',
         host: process.env.POSTGRES_HOST,
         dialect: 'postgres',
-        operatorsAliases: false
+        // operatorsAliases: false
     },
     test: {
-        username: 'test_user',
-        password: 't3st',
+        username: process.env.POSTGRES_USER,
+        password: process.env.POSTGRES_PASSWORD,
         database: 'db_test',
         host: process.env.POSTGRES_HOST,
         dialect: 'postgres',

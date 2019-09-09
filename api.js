@@ -64,7 +64,11 @@ function settingUpEndpoints (app) {
                 hash
             })
 
-            res.status(200).json({ user })
+            res.status(200).json({
+                id: user.id,
+                email: user.email,
+                hash: user.hash
+            })
         } catch (error) {
             res.status(500).json(utils.errorMessage(
                 'Something went wrong. Please try again in a moment.',

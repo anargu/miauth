@@ -1,9 +1,10 @@
 const User = require('./user')
 
-function initializeModels () {
-    User.init()
+function initializeModels (sequelize) {
+    User.init(sequelize)
 }
 
 module.exports = {
-    initializeModels
+    initializeModels,
+    User
 }
