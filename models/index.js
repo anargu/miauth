@@ -1,7 +1,7 @@
 const User = require('./user')
 
-function initializeModels (sequelize) {
-    User.init(sequelize)
+async function initializeModels (sequelize) {
+    await User.init(sequelize)
 }
 
 module.exports = {

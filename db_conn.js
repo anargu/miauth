@@ -9,7 +9,7 @@ const POSTGRES_DB = process.env.POSTGRES_DB
 
 let sequelize = null
 
-function initDatabase () {
+async function initDatabase () {
     sequelize = new Sequelize(
         `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}`,
         {
@@ -22,7 +22,7 @@ function initDatabase () {
         })
 
     // init model
-    initializeModels(sequelize)
+    await initializeModels(sequelize)
 }
 
 module.exports = {

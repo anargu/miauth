@@ -13,6 +13,15 @@ function settingUpEndpoints (app) {
         const email = req.body.email
         // const username = req.body.username
         const password = req.body.password
+        if (email === '' || email === undefined ||
+        password === '' || password === undefined) {
+            res.status(400).json(utils.errorMessage(
+                'empty email or password',
+                'empty input data',
+                103
+            ))
+            return
+        }
 
         const user = await User.findOne({
             where: { email: email }
