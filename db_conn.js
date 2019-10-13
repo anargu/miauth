@@ -1,31 +1,23 @@
-const Sequelize = require('sequelize')
-const initializeModels = require('./models').initializeModels
+const Redis = require('ioredis')
+const { REDIS_PASSWORD, REDIS_HOST, REDIS_PORT, REDIS_DB } = process.env
+const { initializeModels } = require('./models')
 
-const POSTGRES_USER = process.env.POSTGRES_USER
-const POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD
-const POSTGRES_HOST = process.env.POSTGRES_HOST
-const POSTGRES_PORT = process.env.POSTGRES_PORT
-const POSTGRES_DB = process.env.POSTGRES_DB
-
-let sequelize = null
+let re
 
 async function initDatabase () {
-    sequelize = new Sequelize(
-        `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}`,
-        {
-            pool: {
-                max: 5,
-                min: 0,
-                acquire: 30000,
-                idle: 10000
-            }
-        })
+    re = new Redis({
+        port: REDIS_PORT || 6379,
+        host: REDIS_HOST || 'localhost',
+        password: REDIS_PASSWORD || 'put_here_your_long_password',
+        db: parseInt(REDIS_DB || 0)
+        // db 0 // default
+    })
 
-    // init model
-    await initializeModels(sequelize)
+    initializeModels(re)
+    return re
 }
 
 module.exports = {
     initDatabase,
-    sequelize
+    re
 }

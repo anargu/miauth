@@ -1,12 +1,35 @@
 const express = require('express')
 const User = require('./models').User
-const utils = require('./utils')
+const utils = require('./utils/utils')
+const { encodePassword, verifyPassword } = require('./utils/auth_utils')
 
-const bcrypt = require('bcryptjs')
-const saltRounds = parseInt(process.env.SALT) || 10
 
 function settingUpEndpoints (app) {
     const router = express.Router()
+
+    // request inputs { email, password }
+    router.post('/signup', async (req, res) => {
+        const email = req.body.email
+        const password = req.body.password
+        try {
+            const hash = await encodePassword(password)
+
+            const user = User.init(email, hash)
+            await user.save()
+
+            res.status(200).json({
+                id: user.id,
+                email: user.email,
+                hash: user.hash
+            })
+        } catch (error) {
+            res.status(500).json(utils.errorMessage(
+                'Something went wrong. Please try again in a moment.',
+                error.toString(),
+                701
+            ))
+        }
+    })
 
     // request inputs { email or username, password }
     router.post('/login', async (req, res) => {
@@ -23,9 +46,7 @@ function settingUpEndpoints (app) {
             return
         }
 
-        const user = await User.findOne({
-            where: { email: email }
-        })
+        const user = await User.find(email)
         // if user not found
         if (!user) {
             res.status(400).json(utils.errorMessage(
@@ -37,7 +58,7 @@ function settingUpEndpoints (app) {
         }
         // if user exists then validate password
         try {
-            const result = await bcrypt.compare(password, user.hash)
+            const result = await verifyPassword(password, user.hash)
             if (result === true) {
                 const token = await utils.tokenize({ user_email: email })
                 res.status(200).json({
@@ -56,33 +77,6 @@ function settingUpEndpoints (app) {
                 'Something went wrong. Please try again in a moment.',
                 'fail on verifying password ' + error.toString(),
                 700
-            ))
-        }
-    })
-
-    // request inputs { email, password }
-    router.post('/signup', async (req, res) => {
-        const email = req.body.email
-        const password = req.body.password
-
-        try {
-            const hash = await bcrypt.hash(password, saltRounds)
-
-            const user = await User.create({
-                email,
-                hash
-            })
-
-            res.status(200).json({
-                id: user.id,
-                email: user.email,
-                hash: user.hash
-            })
-        } catch (error) {
-            res.status(500).json(utils.errorMessage(
-                'Something went wrong. Please try again in a moment.',
-                error.toString(),
-                701
             ))
         }
     })
