@@ -5,10 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "SALT=10 JWT_EXP_OFFSET=86400 JWT_SECRET=m14uth PORT=5001 POSTGRES_USER=miauth POSTGRES_PASSWORD=m14uthdb POSTGRES_HOST=localhost POSTGRES_PORT=5432 POSTGRES_DB=db_dev node app.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "create-db": "POSTGRES_USER=miauth POSTGRES_PASSWORD=m14uthdb POSTGRES_HOST=localhost POSTGRES_PORT=5432 POSTGRES_DB=miauth-db npx sequelize db:create",    
-    "migrate-db": "POSTGRES_USER=miauth POSTGRES_PASSWORD=m14uthdb POSTGRES_HOST=localhost POSTGRES_PORT=5432 POSTGRES_DB=miauth-db npx sequelize db:migrate"
+    "dev": "SALT=10 JWT_EXP_OFFSET=86400 JWT_SECRET=m14uth PORT=5001 REDIS_PASSWORD=put_here_your_long_password REDIS_HOST=127.0.0.1 REDIS_PORT=6379 REDIS_DB=0 node app.js",
+    "test": "SALT=10 JWT_EXP_OFFSET=86400 JWT_SECRET=m14uth PORT=5001 REDIS_PASSWORD=put_here_your_long_password REDIS_HOST=127.0.0.1 REDIS_PORT=6379 REDIS_DB=0 ./node_modules/.bin/jasmine"
   },
   "repository": {
     "type": "git",
@@ -24,10 +22,12 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
+    "ioredis": "^4.14.1",
     "jsonwebtoken": "^8.5.1",
     "pg": "^7.12.1",
     "pg-hstore": "^2.3.3",
-    "sequelize": "^5.17.2"
+    "sequelize": "^5.17.2",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "eslint": "^6.3.0",
