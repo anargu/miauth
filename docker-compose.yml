@@ -5,7 +5,7 @@ services:
     ports:
       - "5001:5001"
     depends_on:
-      - postgre-db
+      - redis
     networks: 
       - backend
     environment: 
@@ -13,41 +13,22 @@ services:
       JWT_EXP_OFFSET: '86400'
       JWT_SECRET: m14uth
       PORT: 5001
-      POSTGRES_USER: miauth
-      POSTGRES_PASSWORD: m14uthdb
-      POSTGRES_HOST: postgre-db
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: 'miauth-db'
-  postgre-db:
-    image: postgres:12
+      REDIS_PASSWORD: put_here_your_long_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 1
+  redis:
+    image: redis:5.0.6
+    container_name: miauth-redis-db
     restart: always
+    command: redis-server --requirepass "put_here_your_long_password"
     networks: 
       - backend
-    environment:
-      POSTGRES_USER: miauth
-      POSTGRES_PASSWORD: m14uthdb
-      POSTGRES_DB: 'miauth-db'
     ports:
-      - "5432:5432"
+      - '6379:6379'
     volumes:
-      - postgre-db:/var/lib/postgresql/data
-  pgadmin:
-    container_name: pgadmin_container
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-    volumes:
-       - pgadmin:/root/.pgadmin
-    ports:
-      - "${PGADMIN_PORT:-5002}:80"
-    networks:
-      - backend
-    restart: unless-stopped
-    depends_on:
-      - postgre-db
+      - redis-db:/data
 volumes:
-  postgre-db:
-  pgadmin:
+  redis-db:
 networks:
   backend:
