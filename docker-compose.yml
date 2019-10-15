@@ -21,13 +21,14 @@ services:
     image: redis:5.0.6
     container_name: miauth-redis-db
     restart: always
-    command: redis-server --requirepass "put_here_your_long_password"
+    command: redis-server /usr/local/etc/redis/redis.conf
     networks: 
       - backend
     ports:
       - '6379:6379'
     volumes:
       - redis-db:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
 volumes:
   redis-db:
 networks:
