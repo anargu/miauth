@@ -17,6 +17,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: 1
+      LOGIN_BY: 'username' # or 'email'
   redis:
     image: redis:5.0.6
     container_name: miauth-redis-db

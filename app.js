@@ -2,6 +2,7 @@ const express = require('express')
 const initDatabase = require('./db_conn').initDatabase
 const settingUpEndpoints = require('./api').settingUpEndpoints
 const bodyParser = require('body-parser')
+const { AVAILABLE_LOGIN_METHODS } = require('./constants')
 
 async function main () {
 
@@ -12,11 +13,17 @@ async function main () {
     // PORT port to listen express
 
     // database stuff
-    let re = await initDatabase()
+    await initDatabase()
 
     // Constants
     const PORT = process.env.PORT || 8080
     const HOST = '0.0.0.0'
+    
+    const loginBy = process.env.LOGIN_BY || null
+    if (loginBy === null || (AVAILABLE_LOGIN_METHODS.indexOf(loginBy) === -1)) {
+        throw new Error('incorrect LOGIN_BY environment variable selected or not setted (empty)')
+    }
+    
 
     const app = express()
     app.use(bodyParser.json())

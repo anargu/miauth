@@ -8,7 +8,7 @@ async function initDatabase () {
     re = new Redis({
         port: REDIS_PORT || 6379,
         host: REDIS_HOST || 'localhost',
-        password: REDIS_PASSWORD || 'put_here_your_long_password',
+        password: REDIS_PASSWORD || '',
         db: parseInt(REDIS_DB || 0)
         // db 0 // default
     })

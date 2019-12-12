@@ -2,7 +2,7 @@ const express = require('express')
 const User = require('./models').User
 const utils = require('./utils/utils')
 const { encodePassword, verifyPassword } = require('./utils/auth_utils')
-
+const { LOGIN_BY_USERNAME } = require('../constants')
 
 function settingUpEndpoints (app) {
     const router = express.Router()
@@ -10,18 +10,23 @@ function settingUpEndpoints (app) {
     // request inputs { email, password }
     router.post('/signup', async (req, res) => {
         const email = req.body.email
+        const username = req.body.username
+        if (process.env.LOGIN_BY === LOGIN_BY_USERNAME && utils.isEmpty(username)) {            
+            res.status(400).json(utils.errorMessage(
+                'username field is needed.',
+                error.toString(),
+                702
+            ))
+            return                
+        }
         const password = req.body.password
         try {
             const hash = await encodePassword(password)
 
-            const user = User.init(email, hash)
+            const user = User.init(email, username, hash)
             await user.save()
 
-            res.status(200).json({
-                id: user.id,
-                email: user.email,
-                hash: user.hash
-            })
+            res.status(200).json({...user})
         } catch (error) {
             res.status(500).json(utils.errorMessage(
                 'Something went wrong. Please try again in a moment.',
@@ -33,11 +38,10 @@ function settingUpEndpoints (app) {
 
     // request inputs { email or username, password }
     router.post('/login', async (req, res) => {
-        const email = req.body.email
-        // const username = req.body.username
+        const userIdentifier = req.body.email || req.body.username
+
         const password = req.body.password
-        if (email === '' || email === undefined ||
-        password === '' || password === undefined) {
+        if(utils.isEmpty(userIdentifier) || utils.isEmpty(password)) {
             res.status(400).json(utils.errorMessage(
                 'empty email or password',
                 'empty input data',
@@ -46,7 +50,7 @@ function settingUpEndpoints (app) {
             return
         }
 
-        const user = await User.find(email)
+        const user = await User.find(userIdentifier)
         // if user not found
         if (!user) {
             res.status(400).json(utils.errorMessage(

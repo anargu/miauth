@@ -1,9 +1,12 @@
 const User = require('../models/user')
 const { initDatabase } = require('../db_conn')
 const { encodePassword } = require('../utils/auth_utils')
+const { REDIS_USERNAME_INDEX, REDIS_EMAIL_INDEX, LOGIN_BY_USERNAME, LOGIN_BY_EMAIL } = require('../constants')
 
-describe('inserting users', () => {
+describe('inserting users (only with email)', () => {
+    process.env.LOGIN_BY = LOGIN_BY_EMAIL
     let email = 'abc@abc.com'
+    let username = 'abc'
 
     beforeEach(async () => {    
         this.reClient = await initDatabase()
@@ -14,7 +17,7 @@ describe('inserting users', () => {
         try {
             const hash = await encodePassword('toto')
             
-            const user = User.init(email, hash)
+            const user = User.init(email, username, hash)
         
             let result = await user.save()
             expect(result).toBe('OK')
@@ -24,7 +27,40 @@ describe('inserting users', () => {
     })
     
     afterEach(async () => {
-        await this.reClient.del(`users/${email}`)
+        await this.reClient.del(`${REDIS_USERNAME_INDEX}/${username}`)
+        await this.reClient.del(`${REDIS_EMAIL_INDEX}/${email}`)
+        await this.reClient.hdel(`users/${email}`)
+    })
+})
+
+
+describe('inserting users with username', () => {
+    process.env.LOGIN_BY = LOGIN_BY_USERNAME
+    let email = 'abc@abc.com'
+    let username = 'abc'
+
+    beforeEach(async () => {    
+        this.reClient = await initDatabase()
+        User.setup(this.reClient)
+    })
+
+    it('should save a user', async () => {
+        try {
+            const hash = await encodePassword('toto')
+            
+            const user = User.init(email, username, hash)
+        
+            let result = await user.save()
+            expect(result).toBe('OK')
+        } catch (error) {
+            throw error
+        }
+    })
+    
+    afterEach(async () => {
+        await this.reClient.del(`${REDIS_USERNAME_INDEX}/${username}`)
+        await this.reClient.del(`${REDIS_EMAIL_INDEX}/${email}`)
+        await this.reClient.hdel(`users/${email}`)
     })
 })
 

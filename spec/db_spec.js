@@ -1,9 +1,9 @@
 const Redis = require('ioredis');
 
 // const { REDIS_PASSWORD, REDIS_HOST, REDIS_PORT } = process.env
-const REDIS_PASSWORD = "put_here_your_long_password"
+const REDIS_PASSWORD = ""
 const REDIS_HOST = "127.0.0.1"
-const REDIS_PORT = 6379
+const REDIS_PORT = 6380
 
 describe ('database', function () {
     it('should receive correctly env values', () => {
