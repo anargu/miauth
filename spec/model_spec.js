@@ -27,9 +27,8 @@ describe('inserting users (only with email)', () => {
     })
     
     afterEach(async () => {
-        await this.reClient.del(`${REDIS_USERNAME_INDEX}/${username}`)
         await this.reClient.del(`${REDIS_EMAIL_INDEX}/${email}`)
-        await this.reClient.hdel(`users/${email}`)
+        await this.reClient.del(`users/${email}`)
     })
 })
 
@@ -60,26 +59,30 @@ describe('inserting users with username', () => {
     afterEach(async () => {
         await this.reClient.del(`${REDIS_USERNAME_INDEX}/${username}`)
         await this.reClient.del(`${REDIS_EMAIL_INDEX}/${email}`)
-        await this.reClient.hdel(`users/${email}`)
+        await this.reClient.del(`users/${email}`)
     })
 })
 
-describe('querying users', () => {
-    let email = 'abc@abc.com'
+describe('querying users (only email)', () => {
+    let email = 'xyz@xyz.com'
 
     beforeEach(async () => {
+        process.env.LOGIN_BY = LOGIN_BY_EMAIL
         this.reClient = await initDatabase()
         User.setup(this.reClient)
         const hash = await encodePassword('toto')
-        let user = User.init(email, hash)
+        let user = User.init(email, undefined, hash)
         await user.save()
     })
 
-    it('should find the email previous saved', async () => {
+    it('should find the email previously saved', async () => {
         try {
-            let result = await User.find(email)    
+            let result = await User.find(email)
             console.log('::: result ::: ', result)
-            expect(result.email).toBe(email)
+            expect(result).not.toBeNull()
+            if(result !== null) {
+                expect(result.email).toBe(email)
+            }
         } catch (error) {
             throw error
         }
@@ -96,7 +99,54 @@ describe('querying users', () => {
         }
     })
 
-    afterEach(() => {
-        this.reClient.del(`users/${email}`)
+    afterEach(async () => {
+        // await this.reClient.del(`${REDIS_USERNAME_INDEX}/${username}`)
+        await this.reClient.del(`${REDIS_EMAIL_INDEX}/${email}`)
+        await this.reClient.del(`users/${email}`)
+    })
+})
+
+describe('querying users by username', () => {
+    let email = 'abc@abc.com'
+    let username = 'abc'
+
+    beforeEach(async () => {
+        process.env.LOGIN_BY = LOGIN_BY_USERNAME
+        this.reClient = await initDatabase()
+        User.setup(this.reClient)
+        const hash = await encodePassword('toto')
+        let user = User.init(email, username, hash)
+        await user.save()
+    })
+
+    it('should find the user by username, previously saved', async () => {
+        try {
+            let result = await User.find(username)
+            console.log('::: result ::: ', result)
+            expect(result).not.toBeNull()
+            if(result !== null) {
+                expect(result.email).toBe(email)
+                expect(result.username).toBe(username)
+            }
+        } catch (error) {
+            throw error
+        }
+    })
+
+    it('not found user', async () => {
+        try {
+            let username2 = 'another_username'
+            let result = await User.find(username2)
+            console.log('::: result ::: ', result)
+            expect(result).toBeNull()
+        } catch (error) {
+            throw error
+        }
+    })
+
+    afterEach(async () => {
+        await this.reClient.del(`${REDIS_USERNAME_INDEX}/${username}`)
+        await this.reClient.del(`${REDIS_EMAIL_INDEX}/${email}`)
+        await this.reClient.del(`users/${email}`)
     })
 })

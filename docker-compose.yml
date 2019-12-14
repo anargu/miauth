@@ -1,7 +1,8 @@
 version: '3'
 services:
   miauth:
-    image: anargu101/miauth:0.0.1
+    # image: anargu101/miauth:0.0.2
+    build: .
     ports:
       - "5001:5001"
     depends_on:
@@ -22,7 +23,7 @@ services:
     image: redis:5.0.6
     container_name: miauth-redis-db
     restart: always
-    command: redis-server /usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass put_here_your_long_password
     networks: 
       - backend
     ports:

@@ -2,7 +2,7 @@ const express = require('express')
 const User = require('./models').User
 const utils = require('./utils/utils')
 const { encodePassword, verifyPassword } = require('./utils/auth_utils')
-const { LOGIN_BY_USERNAME } = require('../constants')
+const { LOGIN_BY_USERNAME } = require('./constants')
 
 function settingUpEndpoints (app) {
     const router = express.Router()
@@ -11,15 +11,23 @@ function settingUpEndpoints (app) {
     router.post('/signup', async (req, res) => {
         const email = req.body.email
         const username = req.body.username
-        if (process.env.LOGIN_BY === LOGIN_BY_USERNAME && utils.isEmpty(username)) {            
+        if (process.env.LOGIN_BY === LOGIN_BY_USERNAME && utils.isEmpty(username)) {
             res.status(400).json(utils.errorMessage(
+                'Please provide an username.',
                 'username field is needed.',
-                error.toString(),
                 702
             ))
             return                
         }
         const password = req.body.password
+        if(utils.isEmpty(email) || utils.isEmpty(password)) {
+            res.status(400).json(utils.errorMessage(
+                'empty email or password',
+                'empty input data',
+                103
+            ))
+            return
+        }
         try {
             const hash = await encodePassword(password)
 
@@ -38,7 +46,7 @@ function settingUpEndpoints (app) {
 
     // request inputs { email or username, password }
     router.post('/login', async (req, res) => {
-        const userIdentifier = req.body.email || req.body.username
+        const userIdentifier = req.body.username || req.body.email
 
         const password = req.body.password
         if(utils.isEmpty(userIdentifier) || utils.isEmpty(password)) {
@@ -49,22 +57,24 @@ function settingUpEndpoints (app) {
             ))
             return
         }
-
-        const user = await User.find(userIdentifier)
-        // if user not found
-        if (!user) {
-            res.status(400).json(utils.errorMessage(
-                'email/username not found, are you typing your email/username correctly?',
-                'email not found',
-                101
-            ))
-            return
-        }
-        // if user exists then validate password
         try {
+            const user = await User.find(userIdentifier)
+            // if user not found
+            if (!user) {
+                res.status(400).json(utils.errorMessage(
+                    'email/username not found, are you typing your email/username correctly?',
+                    'email not found',
+                    101
+                ))
+                return
+            }
+            // if user exists then validate password
             const result = await verifyPassword(password, user.hash)
             if (result === true) {
-                const token = await utils.tokenize({ user_email: email })
+                let payload = {}
+                const payloadKey = `user_${process.env.LOGIN_BY}`
+                payload[payloadKey] = userIdentifier
+                const token = await utils.tokenize(payload)
                 res.status(200).json({
                     status: 'ok',
                     token: token

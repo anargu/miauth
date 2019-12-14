@@ -33,7 +33,7 @@ class User {
         return _map
     }
 
-    fromMap(obj) { 
+    static fromMap(obj) { 
         let user = new User(obj.id, obj.email, obj.username, obj.hash)
         return user
     }
@@ -41,26 +41,36 @@ class User {
     async save() {
         const re = RedisBase.re
 
+        let results
         try {
-            const results = await re.multi()
-            .setnx(`${REDIS_EMAIL_INDEX}/${this.email}`, this.email)
-            .setnx(`${REDIS_USERNAME_INDEX}/${this.username}`, this.email)
-            .hset(`users/${this.email}`, this.toMap())
-            .exec()
-            
-            console.log(`results are ${results}`)
-
+            if (process.env.LOGIN_BY === LOGIN_BY_USERNAME) {
+                results = await re.multi()
+                .setnx(`${REDIS_EMAIL_INDEX}/${this.email}`, this.email)
+                .setnx(`${REDIS_USERNAME_INDEX}/${this.username}`, this.email)
+                .exec()
+            } else {
+                results = await re.multi()
+                .setnx(`${REDIS_EMAIL_INDEX}/${this.email}`, this.email)
+                .exec()
+            }
+            // check if the setnx processes were made with 1 as a result
+            if (results.map(r => r[1]).filter(pr => pr === 1).length === 0) {
+                // fail, record exists
+                throw new Error('user already defined')
+            }
+            // new record to save
+            results = await re.hmset(`users/${this.email}`, this.toMap())            
             return 'OK'
         } catch (error) {
-            throw new Error('user already defined')
+            throw new Error(error || 'user already defined')
         }
     }
 
     static async find(value) {
-        const loginBy = process.env.LOGIN_BY
+        const redisLoginByIndex = process.env.LOGIN_BY === LOGIN_BY_USERNAME ? REDIS_USERNAME_INDEX : REDIS_EMAIL_INDEX
         const re = RedisBase.re
         // getting user identifier (email)
-        let identifier = await re.get(`${loginBy}/${value}`)
+        let identifier = await re.get(`${redisLoginByIndex}/${value}`)
         if (!identifier) return null
         let result =  await re.hgetall(`users/${identifier}`)
         return User.fromMap(result)
