@@ -113,8 +113,10 @@ function settingUpEndpoints (app) {
         }
     })
 
-    router.post('/refreh-token', (req, res) => {
-    })
+    const tokenRouter = express.Router()
+    tokenRouter.post('/refresh', (req, res) => {})
+    tokenRouter.post('/revoke', (req, res) => {})
+    router.use('/token', tokenRouter)
 
     app.use('/auth', router)
 }

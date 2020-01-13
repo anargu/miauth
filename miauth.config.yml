@@ -1,0 +1,10 @@
+name: HelloMyMiauthImplementation
+encription: bcrypt # only allowed for now
+user_fields:
+    username: yes
+    email: yes
+    password: yes
+fields_validator:
+    username: '[a-zA-Z0-9\-\_]'
+    email: ^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$
+    password: .{4}
