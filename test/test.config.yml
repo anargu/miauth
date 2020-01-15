@@ -1,9 +1,10 @@
 name: HelloMyMiauthImplementation
-user_fields:
+user:
     username: true
     email: true
     password: true
-fields_validator:
+field_validations:
     username: '[a-zA-Z0-9\-\_]'
     email: ^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$
-    password: .{4}
+    password:
+        len: [4, 52]

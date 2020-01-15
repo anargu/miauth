@@ -1,10 +1,11 @@
 name: HelloMyMiauthImplementation
 encription: bcrypt # only allowed for now
-user_fields:
-    username: yes
-    email: yes
-    password: yes
-fields_validator:
+refresh: true # or false; enable refresh_token
+user:
+    username: true
+    email: true
+    # password is de-facto in User
+field_validations:
     username: '[a-zA-Z0-9\-\_]'
     email: ^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$
     password: .{4}

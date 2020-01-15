@@ -3,9 +3,9 @@ const fs = require('fs')
 
 let miauthConfig = null
 
-async function initConfig() {
+function initConfig() {
     const { MIAUTH_CONFIG_FILE } = process.env
-    const miauthConfigString = await fs.readFileSync(MIAUTH_CONFIG_FILE, { encoding: 'utf-8' })
+    const miauthConfigString = fs.readFileSync(MIAUTH_CONFIG_FILE, { encoding: 'utf-8' })
     miauthConfig = YAML.parse(miauthConfigString)
 
     return miauthconfig

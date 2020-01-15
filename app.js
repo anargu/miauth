@@ -14,8 +14,8 @@ async function main () {
     // PORT port to listen express
 
     // database stuff
-    await initDatabase()
     await initConfig()
+    await initDatabase()
 
     // Constants
     const PORT = process.env.PORT || 8080

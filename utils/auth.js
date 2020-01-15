@@ -1,7 +1,7 @@
 const saltRounds = parseInt(process.env.SALT) || 10
 const bcrypt = require('bcryptjs')
 
-const encodePassword = async (password) => {
+const hashPassword = async (password) => {
     let encoded = await bcrypt.hash(password, saltRounds)
     return encoded
 }
@@ -12,6 +12,6 @@ const verifyPassword = async (inputPassword, hashedPassword) => {
 }
 
 module.exports = {
-    encodePassword,
+    hashPassword,
     verifyPassword
 }
