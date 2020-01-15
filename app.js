@@ -3,6 +3,7 @@ const initDatabase = require('./db_conn').initDatabase
 const settingUpEndpoints = require('./api').settingUpEndpoints
 const bodyParser = require('body-parser')
 const { AVAILABLE_LOGIN_METHODS } = require('./constants')
+const initConfig = require('./config').initConfig
 
 async function main () {
 
@@ -14,6 +15,7 @@ async function main () {
 
     // database stuff
     await initDatabase()
+    await initConfig()
 
     // Constants
     const PORT = process.env.PORT || 8080

@@ -1,10 +1,4 @@
-const User = require('./user')
+const Sequelize = require('sequelize')
 
-function initializeModels(re) {
-    User.setup(re)
-}
+const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 
-module.exports = {
-    initializeModels,
-    User
-}

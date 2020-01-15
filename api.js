@@ -1,14 +1,16 @@
 const express = require('express')
 const User = require('./models').User
 const utils = require('./utils/utils')
-const { encodePassword, verifyPassword } = require('./utils/auth_utils')
-const { LOGIN_BY_USERNAME } = require('./constants')
+const { encodePassword, verifyPassword } = require('./utils/auth')
+const { check, validationResult } = require('express-validator');
 
 function settingUpEndpoints (app) {
     const router = express.Router()
 
     // request inputs { email, password }
-    router.post('/signup', async (req, res) => {
+    router.post('/signup', [
+        
+    ], async (req, res) => {
         const email = req.body.email
         const username = req.body.username
         if (process.env.LOGIN_BY === LOGIN_BY_USERNAME && utils.isEmpty(username)) {
