@@ -29,6 +29,7 @@ async function main () {
 
     const app = express()
     app.use(bodyParser.json())
+    app.use(express.urlencoded())
 
     settingUpEndpoints(app)
 

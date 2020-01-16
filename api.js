@@ -77,7 +77,7 @@ function settingUpEndpoints (app) {
                 const payloadKey = `user_${process.env.LOGIN_BY}`
                 payload[payloadKey] = userIdentifier
                 payload['user_email'] = user.email
-                const token = await utils.tokenize(payload)
+                const token = await utils.tokenize(null, payload)
                 res.status(200).json({
                     status: 'ok',
                     token: token

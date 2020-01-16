@@ -11,6 +11,7 @@ services:
     environment: 
       SALT: '10'
       JWT_EXP_OFFSET: '86400'
+      JWT_RESET_PASSWORD_EXP_OFFSET: '600'
       JWT_SECRET: m14uth
       REFRESH_SECRET: m14uth-f5
       PORT: 5001

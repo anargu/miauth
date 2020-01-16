@@ -57,14 +57,14 @@ module.exports = (sequelize) => {
     }
 
     User.createUser = async (input) => {
-        if(!((input.username || input.email) && input.hashedPassword)) {
+        if(!((input.username || input.email) && input.password)) {
             throw new Error('input does not contain needed parameters')
         }
     
         const _user = await User.create({
             username: input.username,
             email: input.email,
-            hash: input.hashedPassword
+            hash: input.password
         })
         return _user.toJSON()
     }
@@ -93,7 +93,20 @@ module.exports = (sequelize) => {
         await _user.save();
     
         return _user.toJSON()
-    }    
+    }
+    
+    User.findByUsername = async (username) => {
+        const _user = await User.findOne({
+            where: {
+                username: username,
+            }
+        })
+
+        if (_user === null) {
+            throw new Error('user is not found')            
+        }
+        return _user
+    }
     
     return User
 }

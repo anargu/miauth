@@ -47,7 +47,7 @@ module.exports = (sequelize) => {
             throw new Error('input does not contain needed parameters')
         }
 
-        const tokenResult = token.tokenize({...input})
+        const tokenResult = token.tokenize(null, {...input})
         const access_token = tokenResult['access_token']
         const expires_in = tokenResult['expires_in']
         // only if refresh was enabled
@@ -81,7 +81,7 @@ module.exports = (sequelize) => {
         return _session
     }
 
-    Session.revokeAllSessions = async function() {
+    Session.revokeAllSessions = async function(input) {
         if(!input.userId) {
             throw new Error('input does not contain userId field')
         }
