@@ -19,8 +19,5 @@ function isEmpty(value) {
 
 module.exports = {
     errorMessage,
-    tokenize,
-    decodeToken,
-    verify,
     isEmpty
 }

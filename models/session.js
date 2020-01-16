@@ -113,7 +113,6 @@ module.exports = (sequelize) => {
 
         await Session.revokeSession(input)
         await Session.createSession(input)
-
     }
 
     return Session
