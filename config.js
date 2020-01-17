@@ -8,11 +8,11 @@ function initConfig() {
     const miauthConfigString = fs.readFileSync(MIAUTH_CONFIG_FILE, { encoding: 'utf-8' })
     miauthConfig = YAML.parse(miauthConfigString)
 
-    return miauthconfig
+    return miauthConfig
 }
 
 module.exports = (() => {
-    if (!miauthconfig) 
+    if (!miauthConfig) 
         return initConfig()
     return miauthConfig
 })()
