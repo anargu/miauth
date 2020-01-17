@@ -1,5 +1,4 @@
 name: HelloMyMiauthImplementation
-encription: bcrypt # only allowed for now
 refresh: true # or false; enable refresh_token
 user:
     username: true
