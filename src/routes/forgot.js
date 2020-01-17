@@ -1,7 +1,7 @@
 
 const path = require('path')
 const express = require('express')
-const { check, body, validationResult } = require('express-validator');
+const { check, body, validationResult, query } = require('express-validator');
 const miauthConfig = require('../config')
 const { MiauthError } = require('../utils/error.js')
 
@@ -19,6 +19,8 @@ forgotRoute.get('/reset', (req, res) => {
 })
 
 forgotRoute.post('/reset', [
+    query('token', 'Token is not setted')
+        .exists({ checkNull: true }),
     check(['new_password'],
         `password must be between\ 
         ${miauthConfig.field_validations.password.len[0]} \ 
