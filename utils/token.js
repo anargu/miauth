@@ -7,7 +7,8 @@ function expirationOffset (exp) {
 
 async function tokenize (exp = null, payload = {}) {
     const expires_in = expirationOffset(exp)
-    const token = await jwt.sign({
+    
+    const access_token = await jwt.sign({
         exp: expires_in,
         ...payload
     }, process.env.JWT_SECRET || 'm14uth')
@@ -15,7 +16,7 @@ async function tokenize (exp = null, payload = {}) {
     const refresh_token = await jwt.sign({
     }, process.env.REFRESH_SECRET || 'm14uth-refresh')
 
-    return { token, refresh_token, expires_in }
+    return { access_token, refresh_token, expires_in }
 }
 
 function decodeToken (token) {
