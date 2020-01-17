@@ -7,7 +7,7 @@ const miauthConfig = require('../config')
 
 const { User, Session } = require('../models')
 const { verifyPassword } = require('../utils/auth')
-const { errorMessage } = require('../utils/utils')
+const { errorMessage } = require('../utils/misc')
 
 const userSchemaValidation = (() => {
     const _userSchemaValidation = {}
@@ -17,7 +17,7 @@ const userSchemaValidation = (() => {
                 options: [new RegExp(miauthConfig.field_validations.username, 'g')],
                 errorMessage: 'Only use alphanumeric characters, \'-\' and \'_\'.'
             },
-            nullable: false,
+            notEmpty: true,
             errorMessage: 'username is empty or invalid',
         }
     }
@@ -29,15 +29,15 @@ const userSchemaValidation = (() => {
                 errorMessage: 'Please type a valid'
             },
             errorMessage: 'email is empty or invalid',
-            nullable: false,
+            notEmpty: true,
         }
     }
 
     _userSchemaValidation['password'] = {
-        nullable: false,
+        notEmpty: true,
         isString: true,
-        isLength: { min: miauthConfig.field_validations.password[0] },
-        errorMessage: `password is empty or less than ${miauthConfig.field_validations.password[0]} characteres`,
+        isLength: { min: miauthConfig.field_validations.password.len[0] },
+        errorMessage: `password is empty or less than ${miauthConfig.field_validations.password.len[0]} characteres`,
     }
 
     return _userSchemaValidation
@@ -82,7 +82,7 @@ authApi.post('/signup', checkSchema(userSchemaValidation), async (req, res) => {
 
 authApi.post('/token/refresh', checkSchema({
     grant_type: {
-        nullable: false,
+        notEmpty: true,
         custom: {
             shouldBeRefreshToken: (value) => {
                 if (value !== 'refresh_token') {
@@ -95,11 +95,11 @@ authApi.post('/token/refresh', checkSchema({
     },
     refresh_token: {
         isString: true,
-        nullable: false,
+        notEmpty: true,
         errorMessage: 'Empty refresh token',
     },
     scope: {
-        nullable: true
+        notEmpty: false
     }
 
 }), async (req, res) => {

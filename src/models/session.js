@@ -3,7 +3,6 @@ const Sequelize = require('sequelize')
 const token = require('../utils/token')
 const miauthConfig = require('../config')
 
-console.log('*** miauthConfig.refresh *** ', miauthConfig.refresh)
 module.exports = (sequelize) => {
     const Session = sequelize.define('session', {
         uuid: {

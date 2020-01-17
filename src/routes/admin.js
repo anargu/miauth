@@ -3,15 +3,13 @@ const { checkSchema } = require('express-validator')
 
 const { Session } = require('../models')
 
-const miauthConfig = require('../config')
-
 
 const adminApi = express.Router()
 
-adminApi.post('/revokeAll', checkSchema({
+adminApi.post('/revoke_all', checkSchema({
     userId: {
         isString: true,
-        nullable: false,
+        notEmpty: true,
     }
 }), async (req, res) => {
     
@@ -19,3 +17,6 @@ adminApi.post('/revokeAll', checkSchema({
 
     res.status(200).json({ sessions_deleted: sessionsDeleted })    
 })
+
+
+module.exports = adminApi

@@ -1,9 +1,9 @@
 const express = require('express')
 const initDatabase = require('./db_conn').initDatabase
-const settingUpEndpoints = require('./api').settingUpEndpoints
+const settingUpEndpoints = require('./src/api').settingUpEndpoints
 const bodyParser = require('body-parser')
 const { AVAILABLE_LOGIN_METHODS } = require('./constants')
-const initConfig = require('./config').initConfig
+const initConfig = require('./src/config').initConfig
 
 async function main () {
 
