@@ -1,20 +1,20 @@
 const Sequelize = require('sequelize')
-const DataTypes = require('sequelize').DataTypes
 
 const token = require('../utils/token')
 const miauthConfig = require('../config')
 
+console.log('*** miauthConfig.refresh *** ', miauthConfig.refresh)
 module.exports = (sequelize) => {
     const Session = sequelize.define('session', {
         uuid: {
           primaryKey: true,
           type: Sequelize.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: Sequelize.UUIDV4,
           allowNull: false
         },
         issuedAt: {
             type: Sequelize.DATE,
-            defaultValue: DataTypes.NOW
+            defaultValue: Sequelize.NOW
         },
         access_token: {
             type: Sequelize.STRING,
@@ -47,7 +47,7 @@ module.exports = (sequelize) => {
             throw new Error('input does not contain needed parameters')
         }
 
-        const tokenResult = token.tokenize(null, {...input})
+        const tokenResult = await token.tokenize(null, {...input})
         const access_token = tokenResult['access_token']
         const expires_in = tokenResult['expires_in']
         // only if refresh was enabled

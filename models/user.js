@@ -1,15 +1,14 @@
 const Sequelize = require('sequelize')
-const DataTypes = require('sequelize').DataTypes
 
 const miauthConfig = require('../config')
-const hashPassword = require('../utils/auth')
+const hashPassword = require('../utils/auth').hashPassword
 
 module.exports = (sequelize) => {
     const User = sequelize.define('user', {
         uuid: {
           primaryKey: true,
           type: Sequelize.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: Sequelize.UUIDV4,
           allowNull: false
         },
         username: {
@@ -34,20 +33,19 @@ module.exports = (sequelize) => {
         },
         hash: {
             type: Sequelize.STRING,
-            set(plainTextPassword) {
-                this.setDataValue('hash', hashPassword(plainTextPassword))
-            },
             allowNull: false,
-            validate: {
-                len: [...miauthConfig.field_validations.password.len]
-            }
         }
     }, {
-        // Using `unique: true` in an attribute above is exactly the same as creating the index in the model's options:
-        indexes: [
-            { unique: true, fields: ['username'] },
-            { unique: true, fields: ['email'] }
-        ]
+        indexes: (() => {
+            let _indexes = []
+            if(miauthConfig.user.username) {
+                _indexes.push({ unique: true, fields: ['username'] })
+            }
+            if(miauthConfig.user.email) {
+                _indexes.push({ unique: true, fields: ['email'] })
+            }
+            return _indexes
+        })()
     })
 
     User.associate = function(models) {
@@ -64,7 +62,7 @@ module.exports = (sequelize) => {
         const _user = await User.create({
             username: input.username,
             email: input.email,
-            hash: input.password
+            hash: await hashPassword(input.password)
         })
         return _user.toJSON()
     }
@@ -89,7 +87,7 @@ module.exports = (sequelize) => {
             throw new Error('user is not found')
         }
     
-        _user.hash = newPassword
+        _user.hash = await hashPassword(newPassword)
         await _user.save();
     
         return _user.toJSON()
