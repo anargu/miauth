@@ -18,6 +18,7 @@ const userSchemaValidation = (() => {
                 errorMessage: 'Only use alphanumeric characters, \'-\' and \'_\'.'
             },
             nullable: false,
+            errorMessage: 'username is empty or invalid',
         }
     }
     
@@ -27,6 +28,7 @@ const userSchemaValidation = (() => {
                 options: [new RegExp(miauthConfig.field_validations.email, 'g')],
                 errorMessage: 'Please type a valid'
             },
+            errorMessage: 'email is empty or invalid',
             nullable: false,
         }
     }
@@ -34,7 +36,8 @@ const userSchemaValidation = (() => {
     _userSchemaValidation['password'] = {
         nullable: false,
         isString: true,
-        isLength: { min: miauthConfig.field_validations.password[0] }
+        isLength: { min: miauthConfig.field_validations.password[0] },
+        errorMessage: `password is empty or less than ${miauthConfig.field_validations.password[0]} characteres`,
     }
 
     return _userSchemaValidation
@@ -47,11 +50,12 @@ const authenticate = async (req, res) => {
     const { username, email, password } = req.body
 
     try {
-        // TODO: I'm here
+        let user
         if (username) {
-
+            user = await User.findByUsername(username)
+        } else {
+            user = await User.findByEmail(email)
         }
-        const user = await User.findByUsername(username)
         if(await verifyPassword(password, user.hash)) {
             const session = await Session.createSession({ userId: user.uuid })
             res.status(200).json(session)
@@ -67,7 +71,6 @@ authApi.post('/login', checkSchema(userSchemaValidation), authenticate)
 
 authApi.post('/signup', checkSchema(userSchemaValidation), async (req, res) => {
 
-    const
     const _user = await User.createUser({
         username: req.body.username,
         email: req.body.email,
@@ -77,6 +80,52 @@ authApi.post('/signup', checkSchema(userSchemaValidation), async (req, res) => {
     res.status(200).json(_user)
 })
 
-authApi.post('/token/refresh', null)
+authApi.post('/token/refresh', checkSchema({
+    grant_type: {
+        nullable: false,
+        custom: {
+            shouldBeRefreshToken: (value) => {
+                if (value !== 'refresh_token') {
+                    throw new Error('invalid grant type')
+                }
+                return true
+            }
+        },
+        errorMessage: 'Invalid or empty grant_type.'
+    },
+    refresh_token: {
+        isString: true,
+        nullable: false,
+        errorMessage: 'Empty refresh token',
+    },
+    scope: {
+        nullable: true
+    }
+
+}), async (req, res) => {
+    try {
+        // const refreshTokenData = decodeToken(req.body.refresh_token)
+        const session = await Session.findOne({
+            where: {
+                refresh_token: req.body.refresh_token
+            }
+        })
+        if (session === null) {
+            throw new Error('session not found')
+        }
+
+        const newSession = await Session.createSession({
+            userId: session.userId
+        })
+        await session.destroy()
+
+        res.status(200).json(newSession)
+    } catch (error) {
+        res.status(400).json(errorMessage(
+            error.message,
+            'invalid request'
+        ))
+    }
+})
 
 module.exports = authApi
