@@ -101,61 +101,60 @@ authApi.post('/signup', checkSchema(userSchemaValidation), async (req, res) => {
     res.status(200).json(_user)
 })
 
-authApi.post('/token/refresh', checkSchema({
-    grant_type: {
-        notEmpty: true,
-        custom: {
-            shouldBeRefreshToken: (value) => {
-                if (value !== 'refresh_token') {
-                    throw new Error('invalid grant type')
+if(miauthConfig.refresh) {
+    authApi.post('/token/refresh', checkSchema({
+        grant_type: {
+            notEmpty: true,
+            custom: {
+                shouldBeRefreshToken: (value) => {
+                    if (value !== 'refresh_token') {
+                        throw new Error('invalid grant type')
+                    }
+                    return true
                 }
-                return true
-            }
+            },
+            errorMessage: 'Invalid or empty grant_type.'
         },
-        errorMessage: 'Invalid or empty grant_type.'
-    },
-    refresh_token: {
-        isString: true,
-        notEmpty: true,
-        errorMessage: 'Empty refresh token',
-    },
-    scope: {
-        notEmpty: false
-    }
-
-}), async (req, res) => {
-    try {
-        // const refreshTokenData = decodeToken(req.body.refresh_token)
-        const session = await Session.findOne({
-            where: {
-                refresh_token: req.body.refresh_token
-            }
-        })
-        if (session === null) {
-            throw new Error('session not found')
+        refresh_token: {
+            isString: true,
+            notEmpty: true,
+            errorMessage: 'Empty refresh token',
+        },
+        scope: {
+            notEmpty: false
         }
-        const _user = await User.findOne({
-            where: {
-                uuid: session.userId
+    
+    }), async (req, res) => {
+        try {
+            // const refreshTokenData = decodeToken(req.body.refresh_token)
+            const session = await Session.findOne({
+                where: {
+                    refresh_token: req.body.refresh_token
+                }
+            })
+            if (session === null) {
+                throw new Error('session not found')
             }
-        })
-        if (_user === null) {
-            throw new Error('User not found. Critical error.')
+            const _user = await User.findOne({
+                where: {
+                    uuid: session.userId
+                }
+            })
+            if (_user === null) {
+                throw new Error('User not found. Critical error.')
+            }
+    
+            const newSession = await Session.createSession({
+                userId: session.userId,
+                email: _user.email
+            })
+            await session.destroy()
+    
+            res.status(200).json(newSession)
+        } catch (error) {
+            next(err)
         }
-
-        const newSession = await Session.createSession({
-            userId: session.userId,
-            email: _user.email
-        })
-        await session.destroy()
-
-        res.status(200).json(newSession)
-    } catch (error) {
-        res.status(400).json(errorMessage(
-            error.message,
-            'invalid request'
-        ))
-    }
-})
+    })    
+}
 
 module.exports = authApi
