@@ -8,8 +8,8 @@ function initConfig() {
         MIAUTH_CONFIG_FILE,
         PORT,
         SALT,
-        JWT_EXP_OFFSET,
-        JWT_SECRET,
+        ACCESS_TOKEN_EXPIRATION,
+        ACCESS_TOKEN_SECRET,
         REFRESH_SECRET
     } = process.env
     const miauthConfigString = fs.readFileSync(MIAUTH_CONFIG_FILE, { encoding: 'utf-8' })    
@@ -20,8 +20,8 @@ function initConfig() {
     miauthConfig['bcrypt'] = {}
     miauthConfig.bcrypt.SALT = SALT
     
-    miauthConfig['JWT_EXP_OFFSET'] = JWT_EXP_OFFSET
-    miauthConfig['JWT_SECRET'] = JWT_SECRET
+    miauthConfig['ACCESS_TOKEN_EXPIRATION'] = ACCESS_TOKEN_EXPIRATION
+    miauthConfig['ACCESS_TOKEN_SECRET'] = ACCESS_TOKEN_SECRET
     miauthConfig['REFRESH_SECRET'] = REFRESH_SECRET
 
     return miauthConfig

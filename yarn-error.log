@@ -29,8 +29,8 @@ npm manifest:
     "main": "app.js",
     "scripts": {
       "start": "node app.js",
-      "dev": "SALT=10 JWT_EXP_OFFSET=86400 JWT_SECRET=m14uth PORT=5001 REDIS_PASSWORD=put_here_your_long_password REDIS_HOST=127.0.0.1 REDIS_PORT=6379 REDIS_DB=0 node app.js",
-      "test": "SALT=10 JWT_EXP_OFFSET=86400 JWT_SECRET=m14uth PORT=5001 REDIS_PASSWORD=put_here_your_long_password REDIS_HOST=127.0.0.1 REDIS_PORT=6379 REDIS_DB=0 ./node_modules/.bin/jasmine"
+      "dev": "SALT=10 ACCESS_TOKEN_EXPIRATION=86400 ACCESS_TOKEN_SECRET=m14uth PORT=5001 REDIS_PASSWORD=put_here_your_long_password REDIS_HOST=127.0.0.1 REDIS_PORT=6379 REDIS_DB=0 node app.js",
+      "test": "SALT=10 ACCESS_TOKEN_EXPIRATION=86400 ACCESS_TOKEN_SECRET=m14uth PORT=5001 REDIS_PASSWORD=put_here_your_long_password REDIS_HOST=127.0.0.1 REDIS_PORT=6379 REDIS_DB=0 ./node_modules/.bin/jasmine"
     },
     "repository": {
       "type": "git",
