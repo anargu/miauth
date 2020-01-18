@@ -59,7 +59,8 @@ describe('Testing User model interactions', function () {
         try {
             console.log('=== USER HASH PASSWORD PREVIOUS ===> ', _userCreated.hash)
             let _userUpdated = await db.User.updatePassword({
-                username: _userCreated.username
+                field: 'username',
+                value: _userCreated.username
             }, 'anotherpass')
             console.log('=== USER HASH PASSWORD AFTER ===> ', _userUpdated.hash)
             assert.notDeepEqual(_userUpdated.hash, _userCreated.hash)                    
