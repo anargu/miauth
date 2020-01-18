@@ -1,28 +1,11 @@
 const express = require('express')
 const { checkSchema } = require('express-validator')
 
-const { Session } = require('../models')
-
-
-/**
- * adminApi is intended to use only in private network with the 1st party application which miauth is attached
- */
-const adminApi = express.Router()
-
-adminApi.post('/revoke_all', checkSchema({
-    userId: {
-        isString: true,
-        notEmpty: true,
-    }
-}), async (req, res) => {
-    
-    const sessionsDeleted = await Session.revokeAll({ userId: req.body.userId })
-
-    res.status(200).json({ sessions_deleted: sessionsDeleted })    
-})
-
 const path = require('path')
 const multer = require('multer')
+
+const { Session } = require('../models')
+
 const One_MB = 1024
 const storage = multer.diskStorage({
     destination: path.join(__dirname, '../../public/'),
@@ -68,10 +51,25 @@ const emailTemplatesUploaded = publicUpload.fields([
     }
 ])
 
-// TODO: update template
+/**
+ * adminApi is intended to use only in private network with the 1st party application which miauth is attached
+ */
+const adminApi = express.Router()
+
 adminApi.put('/update/templates', emailTemplatesUploaded, (req, res) => {
-    
     res.status(200).json({ files_uploaded: req.files })
+})
+
+adminApi.post('/revoke_all', checkSchema({
+    userId: {
+        isString: true,
+        notEmpty: true,
+    }
+}), async (req, res) => {
+    
+    const sessionsDeleted = await Session.revokeAll({ userId: req.body.userId })
+
+    res.status(200).json({ sessions_deleted: sessionsDeleted })    
 })
 
 
