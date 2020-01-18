@@ -14,7 +14,7 @@ describe('Testing Session model interactions', function () {
         await dbConnUtils.initializeDatabase(POSTGRE_DB_URL_CONNECTION, { logging: false })
 
         sequelize = new Sequelize(POSTGRE_DB_URL_CONNECTION);
-        db =  require(path.join(__dirname, '../../models/index')).initSequelize(sequelize)
+        db =  require(path.join(__dirname, '../../src/models/index')).initSequelize(sequelize)
     })
 
     it('verify if \'createSession\' is identified as a function type', () => {
