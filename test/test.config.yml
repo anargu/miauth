@@ -1,4 +1,5 @@
 name: HelloMyMiauthImplementation
+refresh: true # or false to disable refresh_token
 user:
     username: true
     email: true
