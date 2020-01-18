@@ -9,12 +9,12 @@ describe('Api test methods', () => {
 
     before('setting env variables', () => {
         process.env.PORT = '8000'
-        process.env.MIAUTH_CONFIG_FILE = path.join(__dirname, './test.config.yml')
+        process.env.MIAUTH_CONFIG_FILE = path.join(__dirname, '../test.config.yml')
     })
 
     describe('reset password flow', () => {        
         it('should return reset password web page', (done) => {
-            const server = require(path.join(__dirname, '../src/server'))
+            const server = require(path.join(__dirname, '../../src/server'))
             chai.request(server)
             .get('/forgot/reset')
             .end((err, res) => {
