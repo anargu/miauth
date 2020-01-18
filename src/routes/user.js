@@ -14,21 +14,37 @@ const userSchemaValidation = (() => {
     if (miauthConfig.user.username) {
         _userSchemaValidation['username'] = {
             matches: {
-                options: [new RegExp(miauthConfig.field_validations.username, 'g')],
-                errorMessage: 'Only use alphanumeric characters, \'-\' and \'_\'.'
+                options: [new RegExp(miauthConfig.field_validations.username.pattern, 'g')],
+            },
+            isLength: {
+                errorMessage: `Invalid username. Username should be between\ 
+                ${miauthConfig.field_validations.username.len[0]} and\ 
+                ${miauthConfig.field_validations.username.len[1]} characteres`,
+                options: {
+                    min: miauthConfig.field_validations.username.len[0],
+                    max: miauthConfig.field_validations.username.len[1],
+                }
             },
             notEmpty: true,
-            errorMessage: 'username is empty or invalid',
+            errorMessage: miauthConfig.field_validations.username.invalid_pattern_error_message,
         }
     }
     
     if (miauthConfig.user.email) {
         _userSchemaValidation['email'] = {
             matches: {
-                options: [new RegExp(miauthConfig.field_validations.email, 'g')],
-                errorMessage: 'Please type a valid'
+                options: [new RegExp(miauthConfig.field_validations.email.pattern, 'g')],
             },
-            errorMessage: 'email is empty or invalid',
+            isLength: {
+                errorMessage: `Invalid email. Email should be between\ 
+                ${miauthConfig.field_validations.email.len[0]} and\ 
+                ${miauthConfig.field_validations.email.len[1]} characteres`,
+                options: {
+                    min: miauthConfig.field_validations.email.len[0],
+                    max: miauthConfig.field_validations.email.len[1],
+                }
+            },
+            errorMessage: miauthConfig.field_validations.email.invalid_pattern_error_message,
             notEmpty: true,
         }
     }
@@ -36,8 +52,14 @@ const userSchemaValidation = (() => {
     _userSchemaValidation['password'] = {
         notEmpty: true,
         isString: true,
-        isLength: { min: miauthConfig.field_validations.password.len[0] },
-        errorMessage: `password is empty or less than ${miauthConfig.field_validations.password.len[0]} characteres`,
+        isLength: {
+            errorMessage: `Invalid password. Password should be between\ 
+            ${miauthConfig.field_validations.password.len[0]} and\ 
+            ${miauthConfig.field_validations.password.len[1]} characteres`,
+            min: miauthConfig.field_validations.password.len[0],
+            max: miauthConfig.field_validations.password.len[1]
+        },
+        errorMessage: miauthConfig.field_validations.password.invalid_pattern_error_message,
     }
 
     return _userSchemaValidation
