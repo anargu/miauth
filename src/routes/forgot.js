@@ -5,7 +5,7 @@ const { check, oneOf, validationResult, query } = require('express-validator');
 const miauthConfig = require('../config')
 const { MiauthError } = require('../utils/error.js')
 const { User, Session } = require('../models')
-const { tokenize, expirationOffset } = require('../utils/token')
+const { tokenize, expirationOffset, verify } = require('../utils/token')
 
 const forgotRoute = express.Router()
 
@@ -103,10 +103,30 @@ forgotRoute.post('/reset', [
                  path.join(__dirname, '../../public', 'reset_password_result_error.html'),
                  { errors: errors.array() })
         } else {
+            // variables to be used
             // req.query.token
-            // req.query.new_password
+            // req.body.new_password
+            const tokenValid = await verify(req.query.token)
+            if(!tokenValid.isOk) {
+                next(
+                    new MiauthError(
+                        400,
+                        'invalid_token',
+                        tokenValid.error.name,
+                        'Reset Password session has expired. Please request again to recover password')
+                )
+            }
+
+            // REMOVING ALL SESSIONS LOGGED IN OF USER
+            await Session.revokeAllSessions({ userId: tokenValid.payload.userId })
 
 
+            // UPDATING PASSWORD
+            // const userUpdated = 
+            await User.updatePassword({
+                field: 'userId',
+                value: tokenValid.payload.userId
+            }, req.body.new_password)
 
             return res.render(
                 path.join(__dirname, '../../public', 'reset_password_result_success.html'))
