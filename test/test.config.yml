@@ -4,7 +4,14 @@ user:
     email: true
     password: true
 field_validations:
-    username: '[a-zA-Z0-9\-\_]'
-    email: ^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$
+    username:
+        pattern: '[a-zA-Z0-9\-\_]'
+        len: [6, 72]
+        invalid_pattern_error_message: 'Invalid username, it should contain between 6 and 72 alphanumeric characters.Only use alphanumeric characters.'
+    email:
+        pattern: ^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$
+        len: [3, 72]
+        invalid_pattern_error_message: 'Invalid email, please type a correct email.'
     password:
         len: [4, 52]
+        invalid_pattern_error_message: 'Invalid password. Password should contain between 4 and 52 characters'
