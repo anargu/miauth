@@ -122,11 +122,9 @@ if(miauthConfig.refresh) {
         },
         scope: {
             notEmpty: false
-        }
-    
+        }    
     }), async (req, res) => {
         try {
-            // const refreshTokenData = decodeToken(req.body.refresh_token)
             const session = await Session.findOne({
                 where: {
                     refresh_token: req.body.refresh_token
