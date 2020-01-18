@@ -33,6 +33,7 @@ async function verify (token) {
 }
 
 module.exports = {
+    expirationOffset,
     tokenize,
     decodeToken,
     verify,
