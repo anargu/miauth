@@ -65,7 +65,6 @@ const userSchemaValidation = (() => {
     return _userSchemaValidation
 })()
 
-
 const authApi = express.Router()
 
 const authenticate = async (req, res) => {
@@ -79,7 +78,7 @@ const authenticate = async (req, res) => {
             user = await User.findByEmail(email)
         }
         if(await verifyPassword(password, user.hash)) {
-            const session = await Session.createSession({ userId: user.uuid })
+            const session = await Session.createSession({ userId: user.uuid, email: user.email })
             res.status(200).json(session)
         } else {
             res.status(400).json(errorMessage('Invalid username or password', 'incorrect user credentials'))
@@ -135,9 +134,18 @@ authApi.post('/token/refresh', checkSchema({
         if (session === null) {
             throw new Error('session not found')
         }
+        const _user = await User.findOne({
+            where: {
+                uuid: session.userId
+            }
+        })
+        if (_user === null) {
+            throw new Error('User not found. Critical error.')
+        }
 
         const newSession = await Session.createSession({
-            userId: session.userId
+            userId: session.userId,
+            email: _user.email
         })
         await session.destroy()
 

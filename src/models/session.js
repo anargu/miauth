@@ -39,20 +39,30 @@ module.exports = (sequelize) => {
         models.Session.belongsTo(models.User)        
     }
 
-
-    // TODO: validate what input params should be at creating a new session
+    /**
+    * Assign the project to an employee.
+    * @param {Object} input - Input object which have required values to create a Session
+    * @param {string} input.userId - The User ID which this Session are gonna be related with
+    * @param {string} input.email - The User Email to inject in JWT payload as user_email.
+    * @param {string} input.scope - [Optional] The scope value to inject in JWT payload as scope.
+    */
     Session.createSession = async function(input) {
-        if(!input.userId) {
+        if(!(input.userId && input.email)) {
             throw new Error('input does not contain needed parameters')
         }
 
-        const tokenResult = await token.tokenize(null, {...input})
-        const access_token = tokenResult['access_token']
-        const expires_in = tokenResult['expires_in']
+        const access_token = await token.tokenize({
+            userId: input.userId,
+            user_email: input.email
+        }, miauthConfig.ACCESS_TOKEN_SECRET, miauthConfig.ACCESS_TOKEN_EXPIRATION)
+        const expires_in = token.expirationOffset(miauthConfig.ACCESS_TOKEN_EXPIRATION)
         // only if refresh was enabled
         let refresh_token
         if(miauthConfig.refresh) {
-            refresh_token = tokenResult['refresh_token']
+            refresh_token = await token.tokenize({
+                userId: input.userId,
+                user_email: input.email
+            }, miauthConfig.REFRESH_SECRET)
         }
         
         const _session = await Session.create({

@@ -32,7 +32,8 @@ describe('Testing Session model interactions', function () {
             })
 
             const _sessionCreated = await db.Session.createSession({
-                userId: _user.uuid
+                userId: _user.uuid,
+                email: _user.email
             })
             console.log('=== SESSION CREATED ===>\n')
             console.log(_sessionCreated)
@@ -51,7 +52,8 @@ describe('Testing Session model interactions', function () {
             })
 
             const _sessionCreated = await db.Session.createSession({
-                userId: _user.uuid
+                userId: _user.uuid,
+                email: _user.email
             })
             console.log('=== SESSION CREATED ===>\n')
             console.log(_sessionCreated)
