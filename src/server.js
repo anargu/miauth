@@ -8,25 +8,28 @@ const adminRoute = require('./routes/admin.js')
 const userRoute = require('./routes/user.js')
 const { handleError } = require('./utils/error')
 
-const server = express()
+const app = express()
 
-server.set('view engine', 'html');
-server.engine('html', require('hbs').__express);
+app.set('view engine', 'html');
+app.engine('html', require('hbs').__express);
 
-server.use(bodyParser.json())
-server.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 
-server.use('/forgot', forgotRoute)
-server.use('/admin', adminRoute)
-server.use('/auth', userRoute)
+app.use('/forgot', forgotRoute)
+app.use('/admin', adminRoute)
+app.use('/auth', userRoute)
 
-server.use(function(err, req, res, next) {
+app.use(function(err, req, res, next) {
     if (err)
         handleError(err, res)
 });
 
-server.listen(miauthConfig.PORT, () => {
+const HOST = '0.0.0.0'
+const srv = app.listen(miauthConfig.PORT, HOST, () => {
     console.log(
         `▀▄▀▄▀▄ [ MiAuth started & listening on port ${miauthConfig.PORT} ] ▄▀▄▀▄▀`
     )
 })
+
+module.exports = srv
