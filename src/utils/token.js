@@ -1,31 +1,31 @@
 const jwt = require('jsonwebtoken')
 const miauthConfig = require('../config')
 
+const defaultExpirationOffsetTime = (5 * 60 * 60)
+
 function expirationOffset (exp) {
-    return Math.floor(Date.now() / 1000) + (parseInt(exp || process.env.JWT_EXP_OFFSET) || (5 * 60 * 60))
+    return Math.floor(Date.now() / 1000) + (parseInt(exp) || defaultExpirationOffsetTime)
 }
 
-async function tokenize (exp = null, payload = {}) {
-    const expires_in = expirationOffset(exp)
+async function tokenize (payload = {}, secret, exp = undefined) {
+    const expires_in = (exp === undefined) ? undefined : expirationOffset(exp)
+
+    const JWTSignPayload = {...payload}
+    if(expires_in)
+        JWTSignPayload['exp'] = expires_in
     
-    const access_token = await jwt.sign({
-        exp: expires_in,
-        ...payload
-    }, process.env.JWT_SECRET || 'm14uth')
+    const token = await jwt.sign({...JWTSignPayload}, secret)
 
-    const refresh_token = await jwt.sign({
-    }, process.env.REFRESH_SECRET || 'm14uth-refresh')
-
-    return { access_token, refresh_token, expires_in }
+    return token
 }
 
 function decodeToken (token) {
     return jwt.decode(token)
 }
 
-async function verify (token) {
+async function verify (token, secret) {
     try {
-        const payload = await jwt.verify(token, process.env.JWT_SECRET || 'm14uth')
+        const payload = await jwt.verify(token, secret)
         return { isOk: true, payload: { ...payload } }
     } catch (error) {
         return { isOk: false, error: error }
