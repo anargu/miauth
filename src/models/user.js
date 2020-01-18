@@ -75,18 +75,25 @@ module.exports = (sequelize) => {
         return _user.toJSON()
     }
 
-    User.updatePassword = async (userFieldFilter, newPassword) => {
+    /**
+    * Assign the project to an employee.
+    * @param {Object} userQueryField - Object which contain field & value props to defined the query params for User
+    * @param {string} userQueryField.field - Field name from query that will be used to find a User
+    * * @param {string} userQueryField.value - Value of the field that will be used to find a User
+    */
+    User.updatePassword = async (userQueryField, newPassword) => {
         if(!(newPassword)) {
             throw new Error('input does not contain needed parameters')
-        }
-        if (!userFieldFilter.username && userFieldFilter.email) {
-            throw new Error('user field filter null or undefined. How can I query for the user?')
+        } else if(!userQueryField) {
+            throw new Error('user field filter null or undefined. Then, how can I query for the user?')
+        } else if (!(userQueryField['field'] && userQueryField['value'])) {
+            throw new Error('user query values incompleted. How can I query for the user?')
+        } else if(['username', 'email', 'userId'].indexOf(userQueryField['field']) === -1) {
+            throw new Error(`Unsupported user query field: ${userQueryField['field']}`)
         }
     
         const whereQuery = {}
-        const fieldFilter = !userFieldFilter.username ? 'email' :'username'
-        const valueFilter = userFieldFilter.username || userFieldFilter.password
-        whereQuery[fieldFilter] = valueFilter
+        whereQuery[userQueryField['field']] = userQueryField['value']
     
         const _user = await User.findOne({
             where: { ...whereQuery }
