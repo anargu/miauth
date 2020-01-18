@@ -103,15 +103,22 @@ module.exports = (sequelize) => {
     
     User.findByUsername = async (username) => {
         const _user = await User.findOne({
-            where: {
-                username: username,
-            }
+            where: { username: username, }
         })
 
-        if (_user === null) {
+        if (_user === null)
             throw new Error('user is not found')            
-        }
-        return _user
+        return _user.toJSON()
+    }
+
+    User.findByEmail = async (email) => {
+        const _user = await User.findOne({
+            where: { email: email, }
+        })
+
+        if (_user === null)
+            throw new Error('user is not found')            
+        return _user.toJSON()
     }
     
     return User
