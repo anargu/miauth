@@ -12,12 +12,12 @@ describe('testing utility methods for generating JWT', () => {
     it('should generate a valid token without expiration', async () => {
         
         const miauthConfig = require(path.join(__dirname, '../src/config')).initConfig()
-        const { tokenize, decodeToken, verify } = require(path.join(__dirname, '../src/utils/token.js'))
+        const { tokenize, introspect, verify } = require(path.join(__dirname, '../src/utils/token.js'))
         
         const jwt = await tokenize({}, miauthConfig.ACCESS_TOKEN_SECRET)
         assert.deepEqual(typeof jwt, 'string')
         
-        const decodedJwt = decodeToken(jwt)
+        const decodedJwt = introspect(jwt)
         assert.deepEqual(typeof decodedJwt, 'object')
 
         const validToken = await verify(jwt, miauthConfig.ACCESS_TOKEN_SECRET)
@@ -27,7 +27,7 @@ describe('testing utility methods for generating JWT', () => {
     it('should generate a valid token with expiration', async () => {
         process.env.ACCESS_TOKEN_EXPIRATION = '600'
         const miauthConfig = require(path.join(__dirname, '../src/config')).initConfig()
-        const { tokenize, decodeToken, verify } = require(path.join(__dirname, '../src/utils/token.js'))
+        const { tokenize, introspect, verify } = require(path.join(__dirname, '../src/utils/token.js'))
 
         const jwt = await tokenize(
             {},

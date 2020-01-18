@@ -19,7 +19,7 @@ async function tokenize (payload = {}, secret, exp = undefined) {
     return token
 }
 
-function decodeToken (token) {
+function introspect (token) {
     return jwt.decode(token)
 }
 
@@ -35,6 +35,6 @@ async function verify (token, secret) {
 module.exports = {
     expirationOffset,
     tokenize,
-    decodeToken,
+    introspect,
     verify,
 }
