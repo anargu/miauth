@@ -32,17 +32,25 @@ module.exports = {
         allowNull: !miauthConfig.user.username,
         validate: miauthConfig.user.username
         ? ({
-          is: new RegExp(miauthConfig.field_validations.username, 'g')
+          is: new RegExp(miauthConfig.field_validations.username.pattern, 'g'),
+          len: {
+              args: [...miauthConfig.field_validations.username.len],
+              msg: miauthConfig.field_validations.username.invalid_pattern_error_message
+          }
         })
         : undefined
       },
       email: {
         type: Sequelize.STRING,
-        unique: miauthConfig.user.username,
-        allowNull: !miauthConfig.user.username,
-        validate: miauthConfig.user.username
+        unique: miauthConfig.user.email,
+        allowNull: !miauthConfig.user.email,
+        validate: miauthConfig.user.email
         ? ({
-          isEmail: true,
+          is: new RegExp(miauthConfig.field_validations.email.pattern, 'g'),
+          len: {
+              args: [...miauthConfig.field_validations.email.len],
+              msg: miauthConfig.field_validations.email.invalid_pattern_error_message
+          }
         })
         : undefined
       },
