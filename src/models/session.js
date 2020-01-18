@@ -90,6 +90,11 @@ module.exports = (sequelize) => {
         return _session
     }
 
+    /**
+    * Assign the project to an employee.
+    * @param {Object} input - Input object which have required values to revoke all Sessions of User
+    * @param {string} input.userId - The User ID to look in DB for all his sessions
+    */
     Session.revokeAllSessions = async function(input) {
         if(!input.userId) {
             throw new Error('input does not contain userId field')
