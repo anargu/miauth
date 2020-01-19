@@ -1,14 +1,10 @@
 const Sequelize = require('sequelize')
 
 const {
-    POSTGRES_USER,
-    POSTGRES_PASSWORD,
-    POSTGRES_HOST,
-    POSTGRES_PORT,
-    POSTGRES_DB
+    POSTGRESQL_CONN_STRING,
 } = process.env
 
-let sequelize = new Sequelize(`postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}`)
+let sequelize = new Sequelize(POSTGRESQL_CONN_STRING)
 let db
 
 function initializeModels (sequelizeInstance) {
