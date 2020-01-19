@@ -12,15 +12,13 @@ module.exports = {
             if(options.logging)
                 console.log(
                     '*** output ***\n', stdout, '\n*** END output ***')
+            // migration models (tables) to database
             stdout = (await exec(
                 `./node_modules/.bin/sequelize-cli db:migrate --url '${POSTGRE_DB_URL_CONNECTION}' --migrations-path ${path.join(__dirname, '../../src/migrations/')}`)
             ).stdout
             if(options.logging)
                 console.log(
                     '*** output ***\n', stdout, '\n*** END output ***')
-
-            // migration models (tables) to database
-
         } catch (error) {
             if(options.logging === true)
                 console.error(
