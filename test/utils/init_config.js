@@ -6,5 +6,7 @@ module.exports = {
         process.env.ACCESS_TOKEN_SECRET = 'a baby secret'
         process.env.ACCESS_TOKEN_EXPIRATION = (2 * 60).toString()
         process.env.REFRESH_SECRET = 'a baby secret 2'
+
+        require(path.join(__dirname, '../../src/config')).initConfig()
     }
 }

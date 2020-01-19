@@ -12,7 +12,6 @@ module.exports = {
             if(options.logging)
                 console.log(
                     '*** output ***\n', stdout, '\n*** END output ***')
-            require(path.join(__dirname, '../../src/config')).initConfig()
             stdout = (await exec(
                 `./node_modules/.bin/sequelize-cli db:migrate --url '${POSTGRE_DB_URL_CONNECTION}' --migrations-path ${path.join(__dirname, '../../src/migrations/')}`)
             ).stdout
