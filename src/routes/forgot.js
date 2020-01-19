@@ -89,16 +89,10 @@ forgotRoute.post('/reset', [
         and ${miauthConfig.field_validations.password.len[1]} characters`)
         .custom(
             (retypedPassword, { req }) => (retypedPassword === req.body.new_password))
-], (req, res, next) => {
+], async (req, res, next) => {
     const errors = validationResult(req)
     try {
         if (!errors.isEmpty()) {
-            // next(
-            //     new MiauthError(
-            //         400,
-            //         'invalid_input_data',
-            //         errors.array().map(e => e.msg).join('\n'))
-            // )
             return res.render(
                  path.join(__dirname, '../../public', 'reset_password_result_error.html'),
                  { errors: errors.array() })
