@@ -3,6 +3,7 @@ const assert = require('assert')
 const Sequelize = require('sequelize')
 const path = require('path')
 const dbConnUtils = require(path.join(__dirname, '../utils/db_conn.js'))
+const configTest = require(path.join(__dirname, '../utils/init_config.js'))
 
 
 describe('Testing Session model interactions', function () {
@@ -11,6 +12,7 @@ describe('Testing Session model interactions', function () {
     let db
 
     before('Initializing db & models', async () => {
+        configTest.miauthSetup()
         await dbConnUtils.initializeDatabase(POSTGRE_DB_URL_CONNECTION, { logging: false })
 
         sequelize = new Sequelize(POSTGRE_DB_URL_CONNECTION);

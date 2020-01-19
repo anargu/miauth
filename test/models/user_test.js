@@ -2,6 +2,7 @@ const assert = require('assert')
 const Sequelize = require('sequelize')
 const path = require('path')
 const dbConnUtils = require(path.join(__dirname, '../utils/db_conn.js'))
+const configTest = require(path.join(__dirname, '../utils/init_config.js'))
 
 describe('Testing User model interactions', function () {
     const POSTGRE_DB_URL_CONNECTION = `postgres://postgres:miauth-test@localhost:5432/mocha-temporal-test-db`
@@ -9,6 +10,7 @@ describe('Testing User model interactions', function () {
     let db
 
     before('Initializing db & models', async () => {
+        configTest.miauthSetup()
         await dbConnUtils.initializeDatabase(POSTGRE_DB_URL_CONNECTION, { logging: false })
 
         sequelize = new Sequelize(POSTGRE_DB_URL_CONNECTION);
