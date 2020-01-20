@@ -5,7 +5,6 @@ const { checkSchema } = require('express-validator')
 
 const miauthConfig = require('../config')
 
-const { User, Session } = require('../models')
 const { verifyPassword } = require('../utils/auth')
 const { errorMessage } = require('../utils/misc')
 
@@ -65,94 +64,98 @@ const userSchemaValidation = (() => {
     return _userSchemaValidation
 })()
 
-const authApi = express.Router()
+module.exports = (db) => {
+    const { User, Session } = db
 
-const authenticate = async (req, res) => {
-    const { username, email, password } = req.body
+    const authApi = express.Router()
 
-    try {
-        let user
-        if (username) {
-            user = await User.findByUsername(username)
-        } else {
-            user = await User.findByEmail(email)
-        }
-        if(await verifyPassword(password, user.hash)) {
-            const session = await Session.createSession({ userId: user.uuid, email: user.email })
-            res.status(200).json(session)
-        } else {
-            res.status(400).json(errorMessage('Invalid username or password', 'incorrect user credentials'))
-        }        
-    } catch (error) {
-        res.status(400).json(errorMessage('Invalid username or password', error.message))        
-    }
-}
-
-authApi.post('/login', checkSchema(userSchemaValidation), authenticate)
-
-authApi.post('/signup', checkSchema(userSchemaValidation), async (req, res) => {
-
-    const _user = await User.createUser({
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password
-    })
-
-    res.status(200).json(_user)
-})
-
-if(miauthConfig.refresh) {
-    authApi.post('/token/refresh', checkSchema({
-        grant_type: {
-            notEmpty: true,
-            custom: {
-                shouldBeRefreshToken: (value) => {
-                    if (value !== 'refresh_token') {
-                        throw new Error('invalid grant type')
-                    }
-                    return true
-                }
-            },
-            errorMessage: 'Invalid or empty grant_type.'
-        },
-        refresh_token: {
-            isString: true,
-            notEmpty: true,
-            errorMessage: 'Empty refresh token',
-        },
-        scope: {
-            notEmpty: false
-        }    
-    }), async (req, res) => {
+    const authenticate = async (req, res) => {
+        const { username, email, password } = req.body
+    
         try {
-            const session = await Session.findOne({
-                where: {
-                    refresh_token: req.body.refresh_token
-                }
-            })
-            if (session === null) {
-                throw new Error('session not found')
+            let user
+            if (username) {
+                user = await User.findByUsername(username)
+            } else {
+                user = await User.findByEmail(email)
             }
-            const _user = await User.findOne({
-                where: {
-                    uuid: session.userId
-                }
-            })
-            if (_user === null) {
-                throw new Error('User not found. Critical error.')
-            }
-    
-            const newSession = await Session.createSession({
-                userId: session.userId,
-                email: _user.email
-            })
-            await session.destroy()
-    
-            res.status(200).json(newSession)
+            if(await verifyPassword(password, user.hash)) {
+                const session = await Session.createSession({ userId: user.uuid, email: user.email })
+                res.status(200).json(session)
+            } else {
+                res.status(400).json(errorMessage('Invalid username or password', 'incorrect user credentials'))
+            }        
         } catch (error) {
-            next(err)
+            res.status(400).json(errorMessage('Invalid username or password', error.message))        
         }
-    })    
-}
+    }
 
-module.exports = authApi
+    authApi.post('/login', checkSchema(userSchemaValidation), authenticate)
+    
+    authApi.post('/signup', checkSchema(userSchemaValidation), async (req, res) => {
+    
+        const _user = await User.createUser({
+            username: req.body.username,
+            email: req.body.email,
+            password: req.body.password
+        })
+    
+        res.status(200).json(_user)
+    })
+    
+    if(miauthConfig.refresh) {
+        authApi.post('/token/refresh', checkSchema({
+            grant_type: {
+                notEmpty: true,
+                custom: {
+                    shouldBeRefreshToken: (value) => {
+                        if (value !== 'refresh_token') {
+                            throw new Error('invalid grant type')
+                        }
+                        return true
+                    }
+                },
+                errorMessage: 'Invalid or empty grant_type.'
+            },
+            refresh_token: {
+                isString: true,
+                notEmpty: true,
+                errorMessage: 'Empty refresh token',
+            },
+            scope: {
+                notEmpty: false
+            }    
+        }), async (req, res) => {
+            try {
+                const session = await Session.findOne({
+                    where: {
+                        refresh_token: req.body.refresh_token
+                    }
+                })
+                if (session === null) {
+                    throw new Error('session not found')
+                }
+                const _user = await User.findOne({
+                    where: {
+                        uuid: session.userId
+                    }
+                })
+                if (_user === null) {
+                    throw new Error('User not found. Critical error.')
+                }
+        
+                const newSession = await Session.createSession({
+                    userId: session.userId,
+                    email: _user.email
+                })
+                await session.destroy()
+        
+                res.status(200).json(newSession)
+            } catch (error) {
+                next(err)
+            }
+        })    
+    }
+ 
+    return authApi
+}

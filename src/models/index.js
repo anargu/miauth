@@ -1,33 +1,24 @@
 const Sequelize = require('sequelize')
 
-const {
-    POSTGRESQL_CONN_STRING,
-} = process.env
+const { POSTGRESQL_CONN_STRING } = process.env
 
-let sequelize = new Sequelize(POSTGRESQL_CONN_STRING)
-let db
+// initialized()
+module.exports = (() => {
+    const _sequelize = new Sequelize(POSTGRESQL_CONN_STRING)
+    const User = _sequelize.import('./user.js')
+    const Session = _sequelize.import('./session.js')
 
-function initializeModels (sequelizeInstance) {
-    const User = sequelizeInstance.import('./user.js')
-    const Session = sequelizeInstance.import('./session.js')
-
-    db = {
+    const db = {
         User,
-        Session
+        Session,
+        _sequelize,
+        close: async () => {
+            await _sequelize.close()
+        }
     }
 
     User.associate(db)
     Session.associate(db)
-}
-initializeModels(sequelize)
 
-module.exports = db
-
-module.exports.initSequelize = (sequelizeInstance) => {
-    if (sequelize) {
-        sequelize.close()
-    }
-    sequelize = sequelizeInstance
-    initializeModels(sequelizeInstance)
     return db
-}
+})() 

@@ -3,11 +3,10 @@ const bodyParser = require('body-parser')
 
 const miauthConfig = require('./config')
 
-const forgotRoute = require('./routes/forgot.js')
-const adminRoute = require('./routes/admin.js')
-const userRoute = require('./routes/user.js')
 const { handleError } = require('./utils/error')
 
+// initialized db (singleton)
+const db = require('./models')
 const app = express()
 
 app.set('view engine', 'html');
@@ -16,9 +15,9 @@ app.engine('html', require('hbs').__express);
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-app.use('/forgot', forgotRoute)
-app.use('/admin', adminRoute)
-app.use('/auth', userRoute)
+app.use('/forgot', require('./routes/forgot.js')(db))
+app.use('/admin', require('./routes/admin.js')(db))
+app.use('/auth', require('./routes/user.js')(db))
 
 app.use(function(err, req, res, next) {
     if (err)
