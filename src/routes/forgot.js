@@ -31,7 +31,7 @@ module.exports = (db) => {
             }).withMessage(`Invalid email. Email should be between\ 
             ${miauthConfig.field_validations.email.len[0]} and\ 
             ${miauthConfig.field_validations.email.len[1]} characteres`)
-    ]), async (req, res) => {
+    ]), async (req, res, next) => {
         try {
             validationResult(req).throw()
 
@@ -55,6 +55,8 @@ module.exports = (db) => {
             )
             // send email to user
             // TODO: Create Email Service
+            next(new MiauthError(500, 'service_not_implemented', 'service_not_implemented'))
+            return
 
             // respond ok
             res.status(200).json({
