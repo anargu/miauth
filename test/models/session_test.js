@@ -5,18 +5,13 @@ const path = require('path')
 const dbConnUtils = require(path.join(__dirname, '../utils/db_conn.js'))
 const configTest = require(path.join(__dirname, '../utils/init_config.js'))
 
-
 describe('Testing Session model interactions', function () {
-    const POSTGRE_DB_URL_CONNECTION = `postgres://postgres:miauth-test@localhost:5432/mocha-temporal-test-db`
-    let sequelize
+    const POSTGRESQL_CONN_STRING = `postgres://postgres:miauth-test@localhost:5432/mocha-temporal-test-db`
     let db
-
     before('Initializing db & models', async () => {
         configTest.miauthSetup()
-        await dbConnUtils.initializeDatabase(POSTGRE_DB_URL_CONNECTION, { logging: false })
-
-        sequelize = new Sequelize(POSTGRE_DB_URL_CONNECTION);
-        db =  require(path.join(__dirname, '../../src/models/index')).initSequelize(sequelize)
+        process.env.POSTGRESQL_CONN_STRING = POSTGRESQL_CONN_STRING
+        db = await dbConnUtils.initializeDatabase(POSTGRESQL_CONN_STRING, { logging: false })
     })
 
     it('verify if \'createSession\' is identified as a function type', () => {
@@ -66,10 +61,7 @@ describe('Testing Session model interactions', function () {
         }
     })
 
-    after('deleting recreated database', async () => {
-        if(sequelize)
-            sequelize.close()
-
-        await dbConnUtils.removingDatabase(POSTGRE_DB_URL_CONNECTION, { logging: true })
+    after('cleaning tables', async () => {
+        await dbConnUtils.truncateTables(db._sequelize)
     })
 })
