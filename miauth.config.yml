@@ -2,6 +2,7 @@ name: HelloMyMiauthImplementation
 refresh: true # or false to disable refresh_token
 reset_password:
     token_expiration: 600 # 10 min to reset password
+    secret: 'm14uth-reset' # 10 min to reset password
 user:
     username: true
     email: true

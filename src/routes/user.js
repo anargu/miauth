@@ -55,8 +55,10 @@ const userSchemaValidation = (() => {
             errorMessage: `Invalid password. Password should be between\ 
             ${miauthConfig.field_validations.password.len[0]} and\ 
             ${miauthConfig.field_validations.password.len[1]} characteres`,
-            min: miauthConfig.field_validations.password.len[0],
-            max: miauthConfig.field_validations.password.len[1]
+            options: {
+                min: miauthConfig.field_validations.password.len[0],
+                max: miauthConfig.field_validations.password.len[1]    
+            }
         },
         errorMessage: miauthConfig.field_validations.password.invalid_pattern_error_message,
     }
