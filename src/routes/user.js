@@ -42,12 +42,13 @@ module.exports = (db) => {
         }
     }
 
-    authApi.post('/login', oneOf([
-        // case 1 username
-        ... (miauthConfig.user.username) ? [check_username(), check_password()] : [],
-        // case 2 email
-        ... (miauthConfig.user.email) ? [check_email(), check_password()] : []
-    ]), authenticate)
+    authApi.post('/login', [
+        check_password(),
+        oneOf([
+            ... (miauthConfig.user.username) ? [check_username()] : [],
+            ... (miauthConfig.user.email) ? [check_email()] : [],
+        ])
+    ], authenticate)
     
     authApi.post('/signup', [
         ... (miauthConfig.user.username) ? [check_username()] : [],
