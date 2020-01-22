@@ -1,20 +1,14 @@
 const assert = require('assert')
 const path = require('path')
-const axios = require('axios')
 const chaiHttp = require("chai-http")
 const chai = require('chai')
 
-const bodyParser = require('body-parser')
 const express = require('express')
 
 chai.should()
 chai.use(chaiHttp)
 
 const { checkSchema, validationResult } = require('express-validator')
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 describe('User Api test methods', () => {
 
@@ -27,7 +21,7 @@ describe('User Api test methods', () => {
             if (miauthConfig.user.username) {
                 _userSchemaValidation['username'] = {
                     matches: {
-                        options: [new RegExp(miauthConfig.field_validations.username.pattern, 'g')],
+                        options: [new RegExp(miauthConfig.field_validations.username.pattern), 'g'],
                     },
                     isLength: {
                         errorMessage: 'Invalid username. Username should be between ' +
@@ -46,7 +40,7 @@ describe('User Api test methods', () => {
             if (miauthConfig.user.email) {
                 _userSchemaValidation['email'] = {
                     matches: {
-                        options: [new RegExp(miauthConfig.field_validations.email.pattern, 'g')],
+                        options: [new RegExp(miauthConfig.field_validations.email.pattern), 'g'],
                     },
                     isLength: {
                         errorMessage: 'Invalid email. Email should be between ' +
@@ -121,83 +115,6 @@ describe('User Api test methods', () => {
                     assert.fail(error)
                 }
             })
-        })
-        // it(`Given valid user data Then should return ok response`, async () => {
-            // try {
-            //     testcases.forEach(async (testData, i) => {
-            //         chai.request(app)
-            //         .post('/login')
-            //         .send({
-            //             'username': testData.username,
-            //             'email': testData.email,
-            //             'password': testData.password
-            //         })
-            //         .end((err, res) => {
-            //             if(err) throw err
-            //             res.should.have.status(200)
-            //         })                        
-            //         console.log('undone')
-            //     })
-            //     console.log('done')
-            //     done()
-            // } catch (error) {
-            //     done(err)
-            // }
-
-            // try {
-            //     await testcases.forEach(async (testData) => {
-            //         try {
-            //             const res = await chai.request(app)
-            //             .post('/login')
-            //             .send({
-            //                 'username': testData.username,
-            //                 'email': testData.email,
-            //                 'password': testData.password
-            //             })
-            //             res.should.have.status(200)                            
-            //         } catch (error) {
-            //             throw error                        
-            //         }
-            //     })                    
-            // } catch (error) {
-            //     throw error
-            // }            
-        // })
-    })
-
-    describe('When User logins [Axios]', () => {
-
-        let srv
-        before('setup server', () => {
-            srv = app.listen('7890')
-        })
-
-        const testcases = [
-            { username: 'Juan1234', email: 'abc@hotmail.com', password: 'juan' },
-            { username: 'Juanabc', email: 'absdsc@hotmail.com', password: 'juan1' },
-            { username: 'JuanThree', email: 'abc@gmail.com', password: 'juan2' }
-        ]
-        testcases.forEach(async (testData) => {
-            it(`Given valid user data Then should return ok response ${testData.username}`, async function () {
-                this.timeout(8000)
-                try {
-                    
-                    let res = await axios.post('http://localhost:7890/login', {
-                        'username': testData.username,
-                        'email': testData.email,
-                        'password': testData.password
-                    })
-                    assert((typeof res) === 'object')
-                    assert(res.status === 200)
-                    await sleep(2000)
-                } catch (error) {
-                    assert.fail(error)
-                }
-            })
-        })
-
-        after('killing srv', () => {
-            srv.close()
         })
     })
 
