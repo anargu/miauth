@@ -1,70 +1,20 @@
 
 
 const express = require('express')
-const { checkSchema } = require('express-validator')
+const { checkSchema, oneOf, validationResult } = require('express-validator')
 
 const miauthConfig = require('../config')
 
 const { verifyPassword } = require('../utils/auth')
 const { errorMessage } = require('../utils/misc')
-
-const userSchemaValidation = (() => {
-    const _userSchemaValidation = {}
-    if (miauthConfig.user.username) {
-        _userSchemaValidation['username'] = {
-            matches: {
-                options: [new RegExp(miauthConfig.field_validations.username.pattern), 'g'],
-            },
-            isLength: {
-                errorMessage: `Invalid username. Username should be between\ 
-                ${miauthConfig.field_validations.username.len[0]} and\ 
-                ${miauthConfig.field_validations.username.len[1]} characteres`,
-                options: {
-                    min: miauthConfig.field_validations.username.len[0],
-                    max: miauthConfig.field_validations.username.len[1],
-                }
-            },
-            notEmpty: true,
-            errorMessage: miauthConfig.field_validations.username.invalid_pattern_error_message,
-        }
-    }
-    
-    if (miauthConfig.user.email) {
-        _userSchemaValidation['email'] = {
-            matches: {
-                options: [new RegExp(miauthConfig.field_validations.email.pattern), 'g'],
-            },
-            isLength: {
-                errorMessage: `Invalid email. Email should be between\ 
-                ${miauthConfig.field_validations.email.len[0]} and\ 
-                ${miauthConfig.field_validations.email.len[1]} characteres`,
-                options: {
-                    min: miauthConfig.field_validations.email.len[0],
-                    max: miauthConfig.field_validations.email.len[1],
-                }
-            },
-            errorMessage: miauthConfig.field_validations.email.invalid_pattern_error_message,
-            notEmpty: true,
-        }
-    }
-
-    _userSchemaValidation['password'] = {
-        notEmpty: true,
-        isString: true,
-        isLength: {
-            errorMessage: `Invalid password. Password should be between\ 
-            ${miauthConfig.field_validations.password.len[0]} and\ 
-            ${miauthConfig.field_validations.password.len[1]} characteres`,
-            options: {
-                min: miauthConfig.field_validations.password.len[0],
-                max: miauthConfig.field_validations.password.len[1]    
-            }
-        },
-        errorMessage: miauthConfig.field_validations.password.invalid_pattern_error_message,
-    }
-
-    return _userSchemaValidation
-})()
+const {
+    check_username,
+    check_email,
+    check_password,
+    check_grant_type,
+    check_refresh_token,
+    check_scope
+} = require('../middlewares/validations')
 
 module.exports = (db) => {
     const { User, Session } = db
@@ -92,9 +42,18 @@ module.exports = (db) => {
         }
     }
 
-    authApi.post('/login', checkSchema(userSchemaValidation), authenticate)
+    authApi.post('/login', oneOf([
+        // case 1 username
+        ... (miauthConfig.user.username) ? [check_username(), check_password()] : [],
+        // case 2 email
+        ... (miauthConfig.user.email) ? [check_email(), check_password()] : []
+    ]), authenticate)
     
-    authApi.post('/signup', checkSchema(userSchemaValidation), async (req, res) => {
+    authApi.post('/signup', [
+        ... (miauthConfig.user.username) ? [check_username()] : [],
+        ... (miauthConfig.user.check_email) ? [check_email()] : [],
+        check_password(),
+    ], async (req, res) => {
     
         const _user = await User.createUser({
             username: req.body.username,
@@ -106,28 +65,11 @@ module.exports = (db) => {
     })
     
     if(miauthConfig.refresh) {
-        authApi.post('/token/refresh', checkSchema({
-            grant_type: {
-                notEmpty: true,
-                custom: {
-                    shouldBeRefreshToken: (value) => {
-                        if (value !== 'refresh_token') {
-                            throw new Error('invalid grant type')
-                        }
-                        return true
-                    }
-                },
-                errorMessage: 'Invalid or empty grant_type.'
-            },
-            refresh_token: {
-                isString: true,
-                notEmpty: true,
-                errorMessage: 'Empty refresh token',
-            },
-            scope: {
-                notEmpty: false
-            }    
-        }), async (req, res) => {
+        authApi.post('/token/refresh', [
+            check_grant_type(),
+            check_refresh_token(),
+            check_scope()
+        ], async (req, res) => {
             try {
                 const session = await Session.findOne({
                     where: {

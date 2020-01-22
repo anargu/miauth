@@ -1,10 +1,11 @@
 
 const path = require('path')
 const express = require('express')
-const { check, oneOf, validationResult, query } = require('express-validator')
 const miauthConfig = require('../config')
 const { MiauthError } = require('../utils/error.js')
 const { tokenize, expirationOffset, verify } = require('../utils/token')
+const { check, oneOf, validationResult, query } = require('express-validator')
+const { check_retyped_password, check_token, check_username, check_email, check_password } = require('../middlewares/validations')
 
 module.exports = (db) => {
     const { User, Session } = db
@@ -13,24 +14,8 @@ module.exports = (db) => {
 
     // step 1: user request for reset password
     forgotRoute.post('/request', oneOf([
-        check('username', miauthConfig.field_validations.username.invalid_pattern_error_message)
-            .exists({ checkNull: true })
-            .matches(new RegExp(miauthConfig.field_validations.username.pattern), 'g')
-            .isLength({
-                min: miauthConfig.field_validations.username.len[0],
-                max: miauthConfig.field_validations.username.len[1]
-            }).withMessage(`Invalid username. Username should be between\ 
-            ${miauthConfig.field_validations.username.len[0]} and\ 
-            ${miauthConfig.field_validations.username.len[1]} characteres`),
-        check('email', miauthConfig.field_validations.email.invalid_pattern_error_message)
-            .exists({ checkNull: true })
-            .matches(new RegExp(miauthConfig.field_validations.email.pattern), 'g')
-            .isLength({
-                min: miauthConfig.field_validations.email.len[0],
-                max: miauthConfig.field_validations.email.len[1]
-            }).withMessage(`Invalid email. Email should be between\ 
-            ${miauthConfig.field_validations.email.len[0]} and\ 
-            ${miauthConfig.field_validations.email.len[1]} characteres`)
+        ... (miauthConfig.user.username) ? [check_username()] : [],
+        ... (miauthConfig.user.email) ? [check_email()] : []
     ]), async (req, res, next) => {
         try {
             validationResult(req).throw()
@@ -74,25 +59,9 @@ module.exports = (db) => {
     })
 
     forgotRoute.post('/reset', [
-        query('token', 'Token is not setted')
-            .exists({ checkNull: true }),
-        check(['new_password'], miauthConfig.field_validations.password.invalid_pattern_error_message)
-            .exists({ checkNull: true })
-            .isString()
-            .isLength({
-                min: miauthConfig.field_validations.password.len[0],
-                max: miauthConfig.field_validations.password.len[1]
-            }),
-        check('retyped_password', 'password value mismatch!')
-            .isString()
-            .isLength({
-                min: miauthConfig.field_validations.password.len[0],
-                max: miauthConfig.field_validations.password.len[1]
-            }).withMessage(`repeat password input must be between\ 
-            ${miauthConfig.field_validations.password.len[0]} \ 
-            and ${miauthConfig.field_validations.password.len[1]} characters`)
-            .custom(
-                (retypedPassword, { req }) => (retypedPassword === req.body.new_password))
+        check_token(),
+        check_password('new_password'),
+        check_retyped_password(),
     ], async (req, res, next) => {
         const errors = validationResult(req)
         try {
