@@ -13,7 +13,7 @@ const userSchemaValidation = (() => {
     if (miauthConfig.user.username) {
         _userSchemaValidation['username'] = {
             matches: {
-                options: [new RegExp(miauthConfig.field_validations.username.pattern, 'g')],
+                options: [new RegExp(miauthConfig.field_validations.username.pattern), 'g'],
             },
             isLength: {
                 errorMessage: `Invalid username. Username should be between\ 
@@ -32,7 +32,7 @@ const userSchemaValidation = (() => {
     if (miauthConfig.user.email) {
         _userSchemaValidation['email'] = {
             matches: {
-                options: [new RegExp(miauthConfig.field_validations.email.pattern, 'g')],
+                options: [new RegExp(miauthConfig.field_validations.email.pattern), 'g'],
             },
             isLength: {
                 errorMessage: `Invalid email. Email should be between\ 

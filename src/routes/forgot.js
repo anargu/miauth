@@ -15,7 +15,7 @@ module.exports = (db) => {
     forgotRoute.post('/request', oneOf([
         check('username', miauthConfig.field_validations.username.invalid_pattern_error_message)
             .exists({ checkNull: true })
-            .matches(new RegExp(miauthConfig.field_validations.username.pattern, 'g'))
+            .matches(new RegExp(miauthConfig.field_validations.username.pattern), 'g')
             .isLength({
                 min: miauthConfig.field_validations.username.len[0],
                 max: miauthConfig.field_validations.username.len[1]
@@ -24,7 +24,7 @@ module.exports = (db) => {
             ${miauthConfig.field_validations.username.len[1]} characteres`),
         check('email', miauthConfig.field_validations.email.invalid_pattern_error_message)
             .exists({ checkNull: true })
-            .matches(new RegExp(miauthConfig.field_validations.email.pattern, 'g'))
+            .matches(new RegExp(miauthConfig.field_validations.email.pattern), 'g')
             .isLength({
                 min: miauthConfig.field_validations.email.len[0],
                 max: miauthConfig.field_validations.email.len[1]
