@@ -8,6 +8,8 @@ services:
       - db
     networks: 
       - miauth-backend
+    env_file: 
+      - postgres.env
     environment: 
       SALT: '10'
       ACCESS_TOKEN_EXPIRATION: '86400'
@@ -15,16 +17,17 @@ services:
       REFRESH_SECRET: m14uth-f5
       PORT: 5001
       MIAUTH_CONFIG_FILE: miauth.config.yml
-      POSTGRESQL_CONN_STRING: postgres://postgres:miauth-test@localhost:5432/miauth-test-db
   db:
     image: postgres # use latest official postgres version
     restart: always
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: miauth-test
-      POSTGRES_DB: miauth-test-db
+    env_file: 
+      - postgres.env
+    # environment:
+    #   POSTGRES_USER: postgres
+    #   POSTGRES_PASSWORD: miauth-test
+    #   POSTGRES_DB: miauth-test-db
     networks: 
       - miauth-backend
     volumes:

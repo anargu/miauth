@@ -5,12 +5,10 @@ const dbConnUtils = require(path.join(__dirname, '../utils/db_conn.js'))
 const configTest = require(path.join(__dirname, '../utils/init_config.js'))
 
 describe('Testing User model interactions', function () {
-    const POSTGRESQL_CONN_STRING = `postgres://postgres:miauth-test@localhost:5432/mocha-temporal-test-db`
     let db
     before('Initializing db & models', async () => {
         configTest.miauthSetup()
-        process.env.POSTGRESQL_CONN_STRING = POSTGRESQL_CONN_STRING
-        db = await dbConnUtils.initializeDatabase(POSTGRESQL_CONN_STRING, { logging: false })
+        db = await dbConnUtils.initializeDatabase({ logging: false })
     })
 
     it('verify if \'createUser\' is identified as a function type', () => {
