@@ -33,4 +33,5 @@ module.exports = (() => {
     return miauthConfig
 })()
 
+// fn just for testing purposes
 module.exports.initConfig = initConfig
