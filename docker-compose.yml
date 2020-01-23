@@ -1,7 +1,7 @@
 version: '3'
 services:
   miauth:
-    image: anargu101/miauth:0.0.3
+    image: anargu101/miauth:0.8.0
     ports:
       - "5001:5001"
     depends_on:
@@ -19,10 +19,6 @@ services:
       - "5432:5432"
     env_file: 
       - postgres.env
-    # environment:
-    #   POSTGRES_USER: postgres
-    #   POSTGRES_PASSWORD: miauth-test
-    #   POSTGRES_DB: miauth-test-db
     networks: 
       - miauth-backend
     volumes:
