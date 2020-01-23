@@ -6,6 +6,7 @@ const { MiauthError } = require('../utils/error.js')
 const { tokenize, expirationOffset, verify } = require('../utils/token')
 const { check, oneOf, validationResult, query } = require('express-validator')
 const { check_retyped_password, check_token, check_username, check_email, check_password } = require('../middlewares/validations')
+const { sendResetPasswordEmail } = require('../utils/mail')
 
 module.exports = (db) => {
     const { User, Session } = db
@@ -39,13 +40,18 @@ module.exports = (db) => {
                 
             )
             // send email to user
-            // TODO: Create Email Service
-            next(new MiauthError(500, 'service_not_implemented', 'service_not_implemented'))
-            return
+            let result = await sendResetPasswordEmail(
+                miauthConfig,
+                { email: _userFound.email },
+                `${miauthConfig.public_forgot_password_url}?token=${resetEmailToken}`)
 
             // respond ok
             res.status(200).json({
-                message: 'Email sent to the user with the instructure to restore password.'
+                message: 'Email sent to the user with the instructure to restore password.',
+                email_message: {
+                    status: result.status,
+                    data: result.data
+                }
             })
         } catch (err) {
             throw err
