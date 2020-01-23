@@ -36,7 +36,7 @@ module.exports = {
       },
       refresh_token: {
         type: Sequelize.STRING,
-        allowNull: !miauthConfig.refresh
+        allowNull: !miauthConfig.refresh_token.enabled
       },
       scope: {
         type: Sequelize.STRING,

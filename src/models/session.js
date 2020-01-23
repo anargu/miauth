@@ -21,7 +21,7 @@ module.exports = (sequelize) => {
         },
         refresh_token: {
             type: Sequelize.STRING,
-            allowNull: !miauthConfig.refresh
+            allowNull: !miauthConfig.refresh_token.enabled
         },
         scope: {
             type: Sequelize.STRING,
@@ -54,15 +54,15 @@ module.exports = (sequelize) => {
         const access_token = await token.tokenize({
             userId: input.userId,
             user_email: input.email
-        }, miauthConfig.ACCESS_TOKEN_SECRET, miauthConfig.ACCESS_TOKEN_EXPIRATION)
-        const expires_in = token.expirationOffset(miauthConfig.ACCESS_TOKEN_EXPIRATION)
+        }, miauthConfig.access_token.secret, miauthConfig.access_token.expires_in)
+        const expires_in = token.expirationOffset(miauthConfig.access_token.expires_in)
         // only if refresh was enabled
         let refresh_token
-        if(miauthConfig.refresh) {
+        if(miauthConfig.refresh_token.enabled) {
             refresh_token = await token.tokenize({
                 userId: input.userId,
                 user_email: input.email
-            }, miauthConfig.REFRESH_SECRET)
+            }, miauthConfig.refresh_token.secret)
         }
         
         const _session = await Session.create({

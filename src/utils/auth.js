@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs')
 const miauthConfig = require('../config')
-const saltRounds = parseInt(miauthConfig.SALT) || 10
+const saltRounds = parseInt(miauthConfig.bcrypt.salt) || 10
 
 const hashPassword = async (password) => {
     let encoded = await bcrypt.hash(password, saltRounds)

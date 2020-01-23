@@ -65,7 +65,7 @@ module.exports = (db) => {
         res.status(200).json(_user)
     })
     
-    if(miauthConfig.refresh) {
+    if(miauthConfig.refresh_token.enabled) {
         authApi.post('/token/refresh', [
             check_grant_type(),
             check_refresh_token(),

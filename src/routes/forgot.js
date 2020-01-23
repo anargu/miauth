@@ -35,7 +35,7 @@ module.exports = (db) => {
             const resetEmailToken = await tokenize(
                 { userId: _userFound.uuid, email: _userFound.email },
                 miauthConfig.reset_password.secret,
-                expirationOffset(miauthConfig.reset_password.token_expiration),
+                expirationOffset(miauthConfig.reset_password.expires_in),
                 
             )
             // send email to user

@@ -24,8 +24,8 @@ app.use(function(err, req, res, next) {
         handleError(err, res)
 });
 
-const HOST = '0.0.0.0'
-const srv = app.listen(miauthConfig.PORT, HOST, () => {
+const host = '0.0.0.0'
+const srv = app.listen(miauthConfig.port, host, () => {
     console.log(
         `▀▄▀▄▀▄ [ MiAuth started & listening on port ${miauthConfig.PORT} ] ▄▀▄▀▄▀`
     )
