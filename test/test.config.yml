@@ -1,4 +1,5 @@
 name: HelloMyMiauthImplementation
+public_forgot_password_url: http://localhost:5001/forgot/reset
 port: 5001
 bcrypt:
     salt: '10'
