@@ -1,6 +1,4 @@
 
-const server = require('./src/server')
+const srv = require('./src/server')
 
-module.exports = {
-    server
-}
+srv()
