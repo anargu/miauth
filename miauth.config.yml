@@ -11,6 +11,19 @@ refresh_token:
 reset_password:
     expires_in: 600 # 10 min to reset password
     secret: 'm14uth-reset' # 10 min to reset password
+    mail_service:
+        dosmj:
+            method: POST
+            endpoint: http://localhost:4000/email/send
+            payload:
+                template_name: '__required_by_dosmj_email_template_name__'
+                template_data:
+                    reset_link: __dinamic__
+                email_specs:
+                    subject: 'Modificar Contraseña - MiAuth'
+                    to:
+                        - email: __variable__
+                          name: __variable__
 user:
     username: true
     email: true
