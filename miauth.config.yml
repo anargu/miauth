@@ -1,7 +1,15 @@
 name: HelloMyMiauthImplementation
-refresh: true # or false to disable refresh_token
+port: 5001
+bcrypt:
+    salt: '10'
+access_token:
+    secret: m14uth
+    expires_in: '86400'
+refresh_token:
+    enabled: true # or false to disable refresh_token
+    secret: m14uth-f5
 reset_password:
-    token_expiration: 600 # 10 min to reset password
+    expires_in: 600 # 10 min to reset password
     secret: 'm14uth-reset' # 10 min to reset password
 user:
     username: true
