@@ -6,12 +6,13 @@ const {
     POSTGRES_USER,
     POSTGRES_PASSWORD,
     POSTGRES_DB,
+    POSTGRES_HOST,
     POSTGRES_PORT } = process.env
 
 module.exports = {
     execDatabaseUpdateCommands: async () => {
         // database conn string to existing default db (user)
-        const POSTGRES_CONN_STRING = `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}`
+        const POSTGRES_CONN_STRING = `postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}`
         // POSTGRES_CONN_STRING
         try {
             // // creating temporal database

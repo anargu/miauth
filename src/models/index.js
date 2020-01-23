@@ -4,11 +4,12 @@ const {
     POSTGRES_USER,
     POSTGRES_PASSWORD,
     POSTGRES_DB,
+    POSTGRES_HOST,
     POSTGRES_PORT } = process.env
 
 // initialized()
 module.exports = (() => {
-    const _sequelize = new Sequelize(`postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}`)
+    const _sequelize = new Sequelize(`postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}`)
     const User = _sequelize.import('./user.js')
     const Session = _sequelize.import('./session.js')
 
