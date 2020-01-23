@@ -8,8 +8,13 @@
             "type": "node",
             "request": "launch",
             "name": "Run Dev",
-            "program": "${workspaceFolder}/index.js",
+            "program": "${workspaceFolder}/app.js",
             "env": {
+                "POSTGRES_USER": "postgres",
+                "POSTGRES_PASSWORD": "miauth-test",
+                "POSTGRES_DB": "miauth-test-db",
+                "POSTGRES_PORT": "5432",
+                "MIAUTH_CONFIG_FILE": "miauth.config.yml"
             }
         },
         {
