@@ -73,6 +73,11 @@ const validations = {
     check_scope: () => (
         check('scope').not().notEmpty()
     ),
+    check_userId: () => (
+        check('userId')
+        .exists()
+        .isString()
+    )
 }
 
 module.exports = validations

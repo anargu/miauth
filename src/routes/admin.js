@@ -1,5 +1,6 @@
 const express = require('express')
-const { checkSchema } = require('express-validator')
+const { check_userId } = require('../middlewares/validations')
+const { MiauthError } = require('../utils/error')
 
 const path = require('path')
 const multer = require('multer')
@@ -62,12 +63,9 @@ module.exports = (db) => {
         res.status(200).json({ files_uploaded: req.files })
     })
 
-    adminApi.post('/revoke_all', checkSchema({
-        userId: {
-            isString: true,
-            notEmpty: true,
-        }
-    }), async (req, res) => {
+    adminApi.post('/revoke_all', [
+        check_userId()
+    ], async (req, res) => {
         
         const sessionsDeleted = await Session.revokeAll({ userId: req.body.userId })
 
