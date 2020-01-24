@@ -19,7 +19,12 @@ module.exports = (db) => {
         ... (miauthConfig.user.email) ? [check_email()] : []
     ]), async (req, res, next) => {
         try {
-            validationResult(req).throw()
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) {
+                throw new MiauthError(
+                    400, 'ValidationError',
+                    errors.array().map((err) => err.msg).join('. '))
+            }
 
             const fieldValue = req.body.username || req.body.email
             const findByUsername = req.body.username === undefined ? false : true
@@ -54,7 +59,7 @@ module.exports = (db) => {
                 }
             })
         } catch (err) {
-            throw err
+            next(err)
         }
     })
 

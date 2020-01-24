@@ -6,7 +6,7 @@ const { checkSchema, oneOf, validationResult } = require('express-validator')
 const miauthConfig = require('../config')
 
 const { verifyPassword } = require('../utils/auth')
-const { errorMessage } = require('../utils/misc')
+const { MiauthError } = require('../utils/error')
 const {
     check_username,
     check_email,
@@ -21,10 +21,17 @@ module.exports = (db) => {
 
     const authApi = express.Router()
 
-    const authenticate = async (req, res) => {
-        const { username, email, password } = req.body
-    
+    const authenticate = async (req, res) => {    
         try {
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) {
+                throw new MiauthError(
+                    400, 'ValidationError',
+                    errors.array().map((err) => err.msg).join('. '))
+            }
+
+            const { username, email, password } = req.body
+
             let user
             if (username) {
                 user = await User.findByUsername(username)
@@ -35,10 +42,12 @@ module.exports = (db) => {
                 const session = await Session.createSession({ userId: user.uuid, email: user.email })
                 res.status(200).json(session)
             } else {
-                res.status(400).json(errorMessage('Invalid username or password', 'incorrect user credentials'))
+                throw new MiauthError(
+                    400, 'authentication_failed',
+                    'Invalid username or password')
             }        
         } catch (error) {
-            res.status(400).json(errorMessage('Invalid username or password', error.message))        
+            next(error)
         }
     }
 
@@ -52,17 +61,27 @@ module.exports = (db) => {
     
     authApi.post('/signup', [
         ... (miauthConfig.user.username) ? [check_username()] : [],
-        ... (miauthConfig.user.check_email) ? [check_email()] : [],
+        ... (miauthConfig.user.email) ? [check_email()] : [],
         check_password(),
-    ], async (req, res) => {
-    
-        const _user = await User.createUser({
-            username: req.body.username,
-            email: req.body.email,
-            password: req.body.password
-        })
-    
-        res.status(200).json(_user)
+    ], async (req, res, next) => {
+        try {
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) {
+                throw new MiauthError(
+                    400, 'ValidationError',
+                    errors.array().map((err) => err.msg).join('. '))
+            }
+
+            const _user = await User.createUser({
+                username: req.body.username,
+                email: req.body.email,
+                password: req.body.password
+            })
+        
+            res.status(200).json(_user)                
+        } catch (error) {
+            next(error)
+        }
     })
     
     if(miauthConfig.refresh_token.enabled) {
@@ -72,6 +91,13 @@ module.exports = (db) => {
             check_scope()
         ], async (req, res) => {
             try {
+                const errors = validationResult(req)
+                if(!errors.isEmpty()) {
+                    throw new MiauthError(
+                        400, 'ValidationError',
+                        errors.array().map((err) => err.msg).join('. '))
+                }
+
                 const session = await Session.findOne({
                     where: {
                         refresh_token: req.body.refresh_token
