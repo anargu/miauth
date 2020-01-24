@@ -3,7 +3,7 @@ const bodyParser = require('body-parser')
 
 const miauthConfig = require('./config')
 
-const { handleError } = require('./utils/error')
+const { handleError } = require('./middlewares/error_handler')
 
 const { execDatabaseUpdateCommands } = require('./tasks/db_tasks.js')
 
@@ -28,10 +28,7 @@ module.exports = (async function startServer () {
     app.use('/admin', require('./routes/admin.js')(db))
     app.use('/auth', require('./routes/user.js')(db))
 
-    app.use(function(err, req, res, next) {
-        if (err)
-            handleError(err, res)
-    });
+    app.use(handleError);
 
     const host = '0.0.0.0'
     const srv = app.listen(miauthConfig.port, host, () => {
