@@ -1,6 +1,7 @@
 const miauthConfig = require('../config')
 
 const { check, query } = require('express-validator')
+const { onelongline } = require('../utils/misc')
 
 const validations = {
     // check username
@@ -11,8 +12,8 @@ const validations = {
             .isLength({
                 min: miauthConfig.field_validations.username.len[0],
                 max: miauthConfig.field_validations.username.len[1]
-            }).withMessage(`Invalid username. Username should be between\ 
-            ${miauthConfig.field_validations.username.len[0]} and\ 
+            }).withMessage(onelongline`Invalid username. Username should be between 
+            ${miauthConfig.field_validations.username.len[0]} and 
             ${miauthConfig.field_validations.username.len[1]} characteres`)
     ),
     // check email
@@ -23,8 +24,8 @@ const validations = {
             .isLength({
                 min: miauthConfig.field_validations.email.len[0],
                 max: miauthConfig.field_validations.email.len[1]
-            }).withMessage(`Invalid email. Email should be between\ 
-            ${miauthConfig.field_validations.email.len[0]} and\ 
+            }).withMessage(onelongline`Invalid email. Email should be between 
+            ${miauthConfig.field_validations.email.len[0]} and 
             ${miauthConfig.field_validations.email.len[1]} characteres`)
     ),
     // check token
@@ -48,8 +49,8 @@ const validations = {
             .isLength({
                 min: miauthConfig.field_validations.password.len[0],
                 max: miauthConfig.field_validations.password.len[1]
-            }).withMessage(`repeat password input must be between\ 
-            ${miauthConfig.field_validations.password.len[0]} \ 
+            }).withMessage(onelongline`repeat password input must be between 
+            ${miauthConfig.field_validations.password.len[0]} 
             and ${miauthConfig.field_validations.password.len[1]} characters`)
             .custom(
                 (retypedPassword, { req }) => (retypedPassword === req.body.new_password))
