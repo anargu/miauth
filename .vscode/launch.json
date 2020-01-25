@@ -15,7 +15,7 @@
                 "POSTGRES_DB": "miauth-test-db",
                 "POSTGRES_HOST": "localhost",
                 "POSTGRES_PORT": "5432",
-                "MIAUTH_CONFIG_FILE": "miauth.config.yml"
+                "MIAUTH_CONFIG_FILE": "${workspaceFolder}/test/test.config.yml"
             }
         },
         {
