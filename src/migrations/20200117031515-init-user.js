@@ -57,6 +57,11 @@ module.exports = {
       hash: {
         type: Sequelize.STRING,
         allowNull: false,
+      },
+      deletedAt: {
+          type: Sequelize.DATE,
+          allowNull: true,
+          validate: {}
       }
     })
   },

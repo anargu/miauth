@@ -53,7 +53,9 @@ module.exports = (sequelize) => {
                 _indexes.push({ unique: true, fields: ['email'] })
             }
             return _indexes
-        })()
+        })(),
+        // persist "deleted" sessions
+        paranoid: true
     })
 
     User.associate = function(models) {

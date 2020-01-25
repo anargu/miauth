@@ -53,6 +53,11 @@ module.exports = {
           model: 'users',
           key: 'uuid',
         },
+      },
+      deletedAt: {
+          type: Sequelize.DATE,
+          allowNull: true,
+          validate: {}
       }
     })
   },
