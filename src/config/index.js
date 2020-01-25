@@ -5,14 +5,10 @@ let miauthConfig = null
 
 function initConfig() {
     let miauthConfigString
-    try {
-        const { 
-            MIAUTH_CONFIG_FILE
-        } = process.env
-        miauthConfigString = fs.readFileSync(MIAUTH_CONFIG_FILE, { encoding: 'utf-8' })                
-    } catch (error) {
-        throw new Error('MIAUTH_CONFIG_FILE variable given incorrectly or just not provided')
-    }
+    const { 
+        MIAUTH_CONFIG
+    } = process.env
+    miauthConfigString = MIAUTH_CONFIG
 
     miauthConfig = YAML.parse(miauthConfigString)
     // miauthConfig['port']
