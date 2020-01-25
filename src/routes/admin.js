@@ -44,11 +44,6 @@ const emailTemplatesUploaded = publicUpload.fields([
         name: 'reset_password_result_error',
         filename: 'reset_password_result_error.html',
         maxCount: 1
-    },
-    {
-        name: 'email_reset_instructions',
-        filename: 'email_reset_instructions.html',
-        maxCount: 1
     }
 ])
 
