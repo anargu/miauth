@@ -92,6 +92,8 @@ module.exports = (sequelize) => {
             throw new Error('user query values incompleted. How can I query for the user?')
         } else if(['username', 'email', 'userId'].indexOf(userQueryField['field']) === -1) {
             throw new Error(`Unsupported user query field: ${userQueryField['field']}`)
+        } else if (userQueryField['field'] === 'userId') {
+            userQueryField['field'] = 'uuid'
         }
     
         const whereQuery = {}
