@@ -84,7 +84,7 @@ module.exports = (db) => {
                 // variables to be used
                 // req.query.token
                 // req.body.new_password
-                const tokenValid = await verify(req.query.token)
+                const tokenValid = await verify(req.query.token, miauthConfig.reset_password.secret)
                 if(!tokenValid.isOk) {
                     next(
                         new MiauthError(
