@@ -70,12 +70,17 @@ const validations = {
     check_refresh_token: () => (
         check('refresh_token').notEmpty().withMessage('Empty refresh token')
     ),
-    // scope
-    check_scope: () => (
-        check('scope').not().notEmpty()
-    ),
+    // scope: disabled for a while
+    // check_scope: () => (
+    //     check('scope').not().notEmpty()
+    // ),
     check_userId: () => (
         check('userId')
+        .exists()
+        .isString()
+    ),
+    check_access_token: () => (
+        check('access_token')
         .exists()
         .isString()
     )
