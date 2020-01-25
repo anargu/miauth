@@ -6,6 +6,7 @@ const { checkSchema, oneOf, validationResult } = require('express-validator')
 const miauthConfig = require('../config')
 
 const { verifyPassword } = require('../utils/auth')
+const { verify } = require('../utils/token')
 const { MiauthError } = require('../utils/error')
 const {
     check_username,
@@ -13,7 +14,7 @@ const {
     check_password,
     check_grant_type,
     check_refresh_token,
-    check_scope
+    check_access_token
 } = require('../middlewares/validations')
 
 module.exports = (db) => {
@@ -21,7 +22,7 @@ module.exports = (db) => {
 
     const authApi = express.Router()
 
-    const authenticate = async (req, res) => {    
+    const authenticate = async (req, res, next) => {    
         try {
             const errors = validationResult(req)
             if(!errors.isEmpty()) {
@@ -83,13 +84,39 @@ module.exports = (db) => {
             next(error)
         }
     })
+
+    authApi.get('/verify', [
+        check_access_token()
+    ], async (req, res, next) => {
+        try {
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) {
+                throw new MiauthError(
+                    400, 'ValidationError',
+                    errors.array().map((err) => err.msg).join('. '))
+            }
+
+            const tokenValid = await verify(req.query.access_token, miauthConfig.access_token.secret)
+            if (tokenValid.isOk) {
+                res.status(200).json({...tokenValid})
+            } else {
+                throw new MiauthError(400,
+                    tokenValid.error.name,
+                    tokenValid.error.message,
+                    'Invalid token')
+            }
+        } catch (error) {
+            next(error)
+        }
+    })
     
     if(miauthConfig.refresh_token.enabled) {
         authApi.post('/token/refresh', [
             check_grant_type(),
             check_refresh_token(),
-            check_scope()
-        ], async (req, res) => {
+            // disabled for a while
+            // check_scope()
+        ], async (req, res, next) => {
             try {
                 const errors = validationResult(req)
                 if(!errors.isEmpty()) {
@@ -121,9 +148,16 @@ module.exports = (db) => {
                 })
                 await session.destroy()
         
-                res.status(200).json(newSession)
+                res.status(200).json({
+                    old_refresh_token: session.refresh_token,
+                    userId: newSession.userId,
+                    createdAt: newSession.createdAt,
+                    access_token: newSession.access_token,
+                    refresh_token: newSession.refresh_token,
+                    expires_in:  newSession.expires_in
+                })
             } catch (error) {
-                next(err)
+                next(error)
             }
         })    
     }

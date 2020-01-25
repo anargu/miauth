@@ -1,6 +1,7 @@
 const express = require('express')
 const { check_userId } = require('../middlewares/validations')
 const { MiauthError } = require('../utils/error')
+const { validationResult } = require('express-validator')
 
 const path = require('path')
 const multer = require('multer')
@@ -65,11 +66,20 @@ module.exports = (db) => {
 
     adminApi.post('/revoke_all', [
         check_userId()
-    ], async (req, res) => {
-        
-        const sessionsDeleted = await Session.revokeAll({ userId: req.body.userId })
+    ], async (req, res, next) => {
+        try {
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) {
+                throw new MiauthError(
+                    400, 'ValidationError',
+                    errors.array().map((err) => err.msg).join('. '))
+            }
+            const sessionsDeleted = await Session.revokeAllSessions({ userId: req.body.userId })
 
-        res.status(200).json({ sessions_deleted: sessionsDeleted })    
+            res.status(200).json({ sessions_deleted: sessionsDeleted })    
+        } catch (error) {
+            next(error)
+        }
     })
 
     return adminApi
