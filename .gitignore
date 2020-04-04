@@ -56,3 +56,4 @@ _testmain.go
 
 *.config.v2.yml
 !miauth.config.v2.yml
+./miauth
