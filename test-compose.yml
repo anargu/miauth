@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: miauth_postgres_db_test
+    image: 'postgres:latest'
+    ports:
+      - 9910:5432
+    environment:
+      - POSTGRES_USER=miauth
+      - POSTGRES_DB=miauth
+      - POSTGRES_PASSWORD=miauth
