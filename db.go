@@ -3,10 +3,13 @@ package miauth
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"github.com/lib/pq"
+	"strings"
 )
 
 var DB *gorm.DB
 var dialect = "postgres"
+
 // host=myhost port=myport user=gorm dbname=gorm password=mypassword
 var postgresArgs string
 
@@ -26,7 +29,6 @@ func CloseDB() {
 		panic(err)
 	}
 }
-
 
 var Tables = []interface{}{
 	User{},
@@ -50,4 +52,17 @@ func RunMigration() {
 		role := Role{Name: roleName}
 		DB.Where(role).FirstOrCreate(&role)
 	}
+}
+
+func ValidateDuplicateErrorInField(err error, fieldName string) error {
+	if pqErr, ok := err.(*pq.Error); ok {
+		if strings.Contains(pqErr.Detail, "already exists") && strings.Contains(pqErr.Detail, fieldName) {
+			return ErrorMessage{
+				UserMessage:      fmt.Sprintf("%s already taken. Try another one", fieldName),
+				ErrorDescription: pqErr.Detail,
+				Name:             pqErr.Message,
+			}
+		}
+	}
+	return nil
 }

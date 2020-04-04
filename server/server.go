@@ -1,6 +1,5 @@
 package server
 
-
 import (
 	"errors"
 	"fmt"
@@ -49,13 +48,18 @@ type ErrorResponsePayload struct {
 	UserMessage      string `json:"user_message"`
 }
 
+func SendError(c *gin.Context, code int, err error) {
+	c.JSON(code, err)
+	return
+}
+
 func ErrorResponse(c *gin.Context, code int, err error, description string, userMessage string) {
 	var _err = err
 	if _err == nil {
 		_err = errors.New(description)
 	}
-	c.JSON(code, ErrorResponsePayload{
-		Error:            _err.Error(),
+	c.JSON(code, miauth.ErrorMessage{
+		Name:             _err.Error(),
 		ErrorDescription: description,
 		UserMessage:      userMessage,
 	})

@@ -3,7 +3,8 @@ package server
 import (
 	"encoding/json"
 	"errors"
-	miauthv2 "github.com/anargu/miauth"
+	"github.com/anargu/miauth"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -18,10 +19,10 @@ type MiauthCredential struct {
 }
 
 type LoginInputPayload struct {
-	Kind       string      `json:"kind" binding:"required"`
-	UserRole   string      `json:"role" binding:"required"`
-	Username *string `json:"username" valid:"miauth_username"`
-	Email    *string `json:"email" valid:"miauth_email"`
+	Kind        string      `json:"kind" binding:"required"`
+	UserRole    string      `json:"role" binding:"required"`
+	Username    *string     `json:"username" valid:"miauth_username"`
+	Email       *string     `json:"email" valid:"miauth_email"`
 	Credentials interface{} `json:"credential" binding:"required"`
 }
 
@@ -36,8 +37,8 @@ func LoginEndpoint(c *gin.Context) {
 		return
 	}
 
-	var role miauthv2.Role
-	if err := miauthv2.DB.Where(&miauthv2.Role{Name: input.UserRole}).First(&role).Error; err != nil {
+	var role miauth.Role
+	if err := miauth.DB.Where(&miauth.Role{Name: input.UserRole}).First(&role).Error; err != nil {
 		ErrorResponse(c, http.StatusBadRequest, err, "Role does not match", "User was binding with unknown role")
 		return
 	}
@@ -53,40 +54,40 @@ func LoginEndpoint(c *gin.Context) {
 			ErrorResponse(c, http.StatusBadRequest, err, "Missed Params", "Missed parameters")
 			return
 		}
-		var flc miauthv2.FacebookLoginCredential
-		if err := miauthv2.DB.Where(miauthv2.FacebookLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}).First(&flc).Error; err != nil {
+		var flc miauth.FacebookLoginCredential
+		if err := miauth.DB.Where(miauth.FacebookLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}).First(&flc).Error; err != nil {
 			ErrorResponse(c, http.StatusBadRequest, err, "FB ID Account not found", "FB ID Account not found")
 			return
 		}
-		var lc miauthv2.LoginCredential
-		if err := miauthv2.DB.Where(miauthv2.LoginCredential{LoginCredentialID: flc.ID}).First(&lc).Error; err != nil {
+		var lc miauth.LoginCredential
+		if err := miauth.DB.Where(miauth.LoginCredential{LoginCredentialID: flc.ID}).First(&lc).Error; err != nil {
 			ErrorResponse(c, http.StatusBadRequest, err, "FB ID to User Data Relation not found", "User not found")
 			return
 		}
-		var user miauthv2.User
-		if err := miauthv2.DB.Where(&miauthv2.User{Base: miauthv2.Base{ID: lc.UserID}}).First(&user).Error; err != nil {
+		var user miauth.User
+		if err := miauth.DB.Where(&miauth.User{Base: miauth.Base{ID: lc.UserID}}).First(&user).Error; err != nil {
 			ErrorResponse(c, http.StatusBadRequest, err, "User Data Relation not found", "User not found")
 			return
 		}
 
-		accessToken, expString, err := miauthv2.TokenizeAccessToken(user.ID.String(), user.Email)
+		accessToken, expString, err := miauth.TokenizeAccessToken(user.ID.String(), user.Email)
 		if err != nil {
 			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
 			return
 		}
-		refreshToken, err := miauthv2.TokenizeRefreshToken(user.ID.String(), user.Email)
+		refreshToken, err := miauth.TokenizeRefreshToken(user.ID.String(), user.Email)
 		if err != nil {
 			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
 			return
 		}
 		// create login session
-		session := miauthv2.Session{
+		session := miauth.Session{
 			UserID:       user.ID,
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 			ExpiresIn:    expString,
 		}
-		if err := miauthv2.DB.Create(&session).Error; err != nil {
+		if err := miauth.DB.Create(&session).Error; err != nil {
 			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
 			return
 		}
@@ -103,40 +104,40 @@ func LoginEndpoint(c *gin.Context) {
 			ErrorResponse(c, http.StatusBadRequest, err, "Missed Params", "Missed parameters")
 			return
 		}
-		var glc miauthv2.GoogleLoginCredential
-		if err := miauthv2.DB.Where(miauthv2.GoogleLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}).First(&glc).Error; err != nil {
+		var glc miauth.GoogleLoginCredential
+		if err := miauth.DB.Where(miauth.GoogleLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}).First(&glc).Error; err != nil {
 			ErrorResponse(c, http.StatusBadRequest, err, "FB ID Account not found", "FB ID Account not found")
 			return
 		}
-		var lc miauthv2.LoginCredential
-		if err := miauthv2.DB.Where(miauthv2.LoginCredential{LoginCredentialID: glc.ID}).First(&lc).Error; err != nil {
+		var lc miauth.LoginCredential
+		if err := miauth.DB.Where(miauth.LoginCredential{LoginCredentialID: glc.ID}).First(&lc).Error; err != nil {
 			ErrorResponse(c, http.StatusBadRequest, err, "FB ID to User Data Relation not found", "User not found")
 			return
 		}
-		var user miauthv2.User
-		if err := miauthv2.DB.Where(&miauthv2.User{Base: miauthv2.Base{ID: lc.UserID}}).First(&user).Error; err != nil {
+		var user miauth.User
+		if err := miauth.DB.Where(&miauth.User{Base: miauth.Base{ID: lc.UserID}}).First(&user).Error; err != nil {
 			ErrorResponse(c, http.StatusBadRequest, err, "User Data Relation not found", "User not found")
 			return
 		}
 
-		accessToken, expString, err := miauthv2.TokenizeAccessToken(user.ID.String(), user.Email)
+		accessToken, expString, err := miauth.TokenizeAccessToken(user.ID.String(), user.Email)
 		if err != nil {
 			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
 			return
 		}
-		refreshToken, err := miauthv2.TokenizeRefreshToken(user.ID.String(), user.Email)
+		refreshToken, err := miauth.TokenizeRefreshToken(user.ID.String(), user.Email)
 		if err != nil {
 			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
 			return
 		}
 		// create login session
-		session := miauthv2.Session{
+		session := miauth.Session{
 			UserID:       user.ID,
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 			ExpiresIn:    expString,
 		}
-		if err := miauthv2.DB.Create(&session).Error; err != nil {
+		if err := miauth.DB.Create(&session).Error; err != nil {
 			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
 			return
 		}
@@ -150,16 +151,16 @@ func LoginEndpoint(c *gin.Context) {
 			ErrorResponse(c, http.StatusInternalServerError, err, "Cannot process input data", "Values sent are invalid")
 			return
 		}
-		var userFound miauthv2.User
+		var userFound miauth.User
 		if input.Username == nil || miauthCredential.Password == nil {
 			ErrorResponse(c, http.StatusBadRequest, err, "Missed Params", "Missed parameters")
 			return
 		}
-		if err := miauthv2.DB.Where(&miauthv2.User{Username: *input.Username}).First(&userFound).Error; err != nil {
+		if err := miauth.DB.Where(&miauth.User{Username: *input.Username}).First(&userFound).Error; err != nil {
 			ErrorResponse(c, http.StatusBadRequest, err, "No Username found", "Username not found")
 			return
 		}
-		lc, err := userFound.FindCredentialType(miauthv2.MiauthLC)
+		lc, err := userFound.FindCredentialType(miauth.MiauthLC)
 		if err != nil || lc == nil {
 			if err == nil {
 				err = errors.New("no credential found")
@@ -167,30 +168,30 @@ func LoginEndpoint(c *gin.Context) {
 			ErrorResponse(c, http.StatusInternalServerError, err, "No credential found", "Invalid user data")
 			return
 		}
-		mlc := (*lc).(miauthv2.MiauthLoginCredential)
-		if err := miauthv2.ComparePassword(*miauthCredential.Password, mlc.Hash); err != nil {
+		mlc := (*lc).(miauth.MiauthLoginCredential)
+		if err := miauth.ComparePassword(*miauthCredential.Password, mlc.Hash); err != nil {
 			ErrorResponse(c, http.StatusBadRequest, err, "Password mismatch", "Incorrect Password")
 			return
 		}
 
-		accessToken, expString, err := miauthv2.TokenizeAccessToken(userFound.ID.String(), userFound.Email)
+		accessToken, expString, err := miauth.TokenizeAccessToken(userFound.ID.String(), userFound.Email)
 		if err != nil {
 			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
 			return
 		}
-		refreshToken, err := miauthv2.TokenizeRefreshToken(userFound.ID.String(), userFound.Email)
+		refreshToken, err := miauth.TokenizeRefreshToken(userFound.ID.String(), userFound.Email)
 		if err != nil {
 			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
 			return
 		}
 		// create login session
-		session := miauthv2.Session{
+		session := miauth.Session{
 			UserID:       userFound.ID,
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 			ExpiresIn:    expString,
 		}
-		if err := miauthv2.DB.Create(&session).Error; err != nil {
+		if err := miauth.DB.Create(&session).Error; err != nil {
 			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
 			return
 		}
@@ -206,9 +207,9 @@ func LoginEndpoint(c *gin.Context) {
 type SignupInputPayload struct {
 	Kind string `json:"kind" binding:"required"`
 
-	UserRole string `json:"role" binding:"required"`
-	Username *string `json:"username" binding:"required" valid:"miauth_username"`
-	Email    *string `json:"email" binding:"required,email" valid:"miauth_email"`
+	UserRole    string      `json:"role" binding:"required"`
+	Username    *string     `json:"username" binding:"required" valid:"miauth_username"`
+	Email       *string     `json:"email" binding:"required,email" valid:"miauth_email"`
 	Credentials interface{} `json:"credential" binding:"required"`
 	//Password *string `json:"password"`
 	//ThirdPartyAccountID *string `json:"account_id"`
@@ -224,8 +225,8 @@ func SignupEndpoint(c *gin.Context) {
 		ErrorResponse(c, http.StatusBadRequest, err, "Bad Params", "Wrong parameters")
 		return
 	}
-	var role miauthv2.Role
-	if err := miauthv2.DB.Where(&miauthv2.Role{Name: input.UserRole}).First(&role).Error; err != nil {
+	var role miauth.Role
+	if err := miauth.DB.Where(&miauth.Role{Name: input.UserRole}).First(&role).Error; err != nil {
 		ErrorResponse(c, http.StatusBadRequest, err, "Role does not match", "User was binding with unknown role")
 		return
 	}
@@ -240,33 +241,33 @@ func SignupEndpoint(c *gin.Context) {
 			ErrorResponse(c, http.StatusBadRequest, err, "Missed Params", "Missed parameters")
 			return
 		}
-		tx := miauthv2.DB.Begin()
-		var user miauthv2.User
+		tx := miauth.DB.Begin()
+		var user miauth.User
 		{
-			user = miauthv2.User{Username: *input.Username, Email: *input.Email, Role: role}
-			if err := miauthv2.DB.Create(&user).Error; err != nil {
+			user = miauth.User{Username: *input.Username, Email: *input.Email, Role: role}
+			if err := miauth.DB.Create(&user).Error; err != nil {
 				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User", "Cannot process your user information. Please try again in a moment")
 				tx.Rollback()
 				return
 			}
-			flc := miauthv2.FacebookLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}
-			if err := miauthv2.DB.Create(&flc).Error; err != nil {
+			flc := miauth.FacebookLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}
+			if err := miauth.DB.Create(&flc).Error; err != nil {
 				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
 				tx.Rollback()
 				return
 			}
-			lc := miauthv2.LoginCredential{
+			lc := miauth.LoginCredential{
 				UserID:              user.ID,
-				KindLoginCredential: miauthv2.FacebookLC,
+				KindLoginCredential: miauth.FacebookLC,
 				LoginCredentialID:   flc.ID}
-			if err := miauthv2.DB.Create(&lc).Error; err != nil {
+			if err := miauth.DB.Create(&lc).Error; err != nil {
 				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
 				tx.Rollback()
 				return
 			}
 		}
 		tx.Commit()
-		c.JSON(http.StatusOK, gin.H{"data": user})
+		c.JSON(http.StatusOK, user)
 		return
 	case "google":
 		var thirdPartyCredential ThidPartyCredential
@@ -279,33 +280,33 @@ func SignupEndpoint(c *gin.Context) {
 			return
 		}
 
-		tx := miauthv2.DB.Begin()
-		var user miauthv2.User
+		tx := miauth.DB.Begin()
+		var user miauth.User
 		{
-			user = miauthv2.User{Username: *input.Username, Email: *input.Email, Role: role}
-			if err := miauthv2.DB.Create(&user).Error; err != nil {
+			user = miauth.User{Username: *input.Username, Email: *input.Email, Role: role}
+			if err := miauth.DB.Create(&user).Error; err != nil {
 				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User", "Cannot process your user information. Please try again in a moment")
 				tx.Rollback()
 				return
 			}
-			glc := miauthv2.GoogleLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}
-			if err := miauthv2.DB.Create(&glc).Error; err != nil {
+			glc := miauth.GoogleLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}
+			if err := miauth.DB.Create(&glc).Error; err != nil {
 				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
 				tx.Rollback()
 				return
 			}
-			lc := miauthv2.LoginCredential{
+			lc := miauth.LoginCredential{
 				UserID:              user.ID,
-				KindLoginCredential: miauthv2.GoogleLC,
+				KindLoginCredential: miauth.GoogleLC,
 				LoginCredentialID:   glc.ID}
-			if err := miauthv2.DB.Create(&lc).Error; err != nil {
+			if err := miauth.DB.Create(&lc).Error; err != nil {
 				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
 				tx.Rollback()
 				return
 			}
 		}
 		tx.Commit()
-		c.JSON(http.StatusOK, gin.H{"data": user})
+		c.JSON(http.StatusOK, user)
 		return
 	case "miauth":
 		var miauthCredential MiauthCredential
@@ -313,12 +314,12 @@ func SignupEndpoint(c *gin.Context) {
 			ErrorResponse(c, http.StatusInternalServerError, err, "Cannot process input data", "Values sent are invalid")
 			return
 		}
-		if ok := miauthv2.UsernamePatterns[miauthv2.OnlyAlphanumericNoSpaceValues].MatchString(*input.Username); !ok {
+		if ok := miauth.UsernamePatterns[miauth.OnlyAlphanumericNoSpaceValues].MatchString(*input.Username); !ok {
 			ErrorResponse(c,
 				http.StatusBadRequest,
 				err,
 				"Invalid Username pattern",
-				miauthv2.Config.FieldValidations.Username.InvalidPatternErrorMessage)
+				miauth.Config.FieldValidations.Username.InvalidPatternErrorMessage)
 			return
 		}
 		hashed, err := bcrypt.GenerateFromPassword([]byte(*miauthCredential.Password), 10)
@@ -327,33 +328,39 @@ func SignupEndpoint(c *gin.Context) {
 			return
 		}
 
-		tx := miauthv2.DB.Begin()
-		var user miauthv2.User
+		tx := miauth.DB.Begin()
+		var user miauth.User
 		{
-			user = miauthv2.User{Username: *input.Username, Email: *input.Email, Role: role}
-			if err := miauthv2.DB.Create(&user).Error; err != nil {
-				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User", "Cannot process your user information. Please try again in a moment")
+			user = miauth.User{Username: *input.Username, Email: *input.Email, Role: role}
+			if err := miauth.DB.Create(&user).Error; err != nil {
+				if _err := miauth.ValidateDuplicateErrorInField(err, "username"); _err != nil {
+					SendError(c, http.StatusBadRequest, _err)
+				} else if _err = miauth.ValidateDuplicateErrorInField(err, "email"); _err != nil {
+					SendError(c, http.StatusBadRequest, _err)
+				} else {
+					ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User", "Cannot process your user information. Please try again in a moment")
+				}
 				tx.Rollback()
 				return
 			}
-			mlc := miauthv2.MiauthLoginCredential{Hash: string(hashed)}
-			if err := miauthv2.DB.Create(&mlc).Error; err != nil {
+			mlc := miauth.MiauthLoginCredential{Hash: string(hashed)}
+			if err := miauth.DB.Create(&mlc).Error; err != nil {
 				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
 				tx.Rollback()
 				return
 			}
-			lc := miauthv2.LoginCredential{
+			lc := miauth.LoginCredential{
 				UserID:              user.ID,
-				KindLoginCredential: miauthv2.MiauthLC,
+				KindLoginCredential: miauth.MiauthLC,
 				LoginCredentialID:   mlc.ID}
-			if err := miauthv2.DB.Create(&lc).Error; err != nil {
+			if err := miauth.DB.Create(&lc).Error; err != nil {
 				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
 				tx.Rollback()
 				return
 			}
 		}
 		tx.Commit()
-		c.JSON(http.StatusOK, gin.H{"data": user})
+		c.JSON(http.StatusOK, user)
 		return
 	default:
 		ErrorResponse(c, http.StatusBadRequest, err, "Incorrect Credential Type", "Wrong parameters. Are you hacker?")
@@ -371,13 +378,19 @@ func verifyEndpoint(c *gin.Context) {
 		ErrorResponse(c, http.StatusBadRequest, err, "Bad Params", "Wrong parameters")
 		return
 	}
-	if isValid, err := miauthv2.VerifyAccessToken(queryParam.AccessToken); err != nil || !isValid {
+	var tk *jwt.Token
+	if tk, err = miauth.VerifyAccessToken(queryParam.AccessToken); err != nil || !tk.Valid {
 		if err == nil {
 			err = errors.New("invalid token")
 		}
 		ErrorResponse(c, http.StatusUnauthorized, err, "Invalid token", "Invalid token")
 		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"isOk":    true,
+		"payload": tk.Claims,
+	})
 }
 
 type RefreshTokenInputPayload struct {
@@ -396,7 +409,7 @@ func tokenRefreshEndpoint(c *gin.Context) {
 		return
 	}
 
-	if isOk, err := miauthv2.VerifyRefreshToken(input.RefreshToken); err != nil || !isOk {
+	if isOk, err := miauth.VerifyRefreshToken(input.RefreshToken); err != nil || !isOk {
 		if err == nil {
 			err = errors.New("invalid refresh token")
 		}
@@ -404,38 +417,38 @@ func tokenRefreshEndpoint(c *gin.Context) {
 		return
 	}
 
-	var session miauthv2.Session
-	if err := miauthv2.DB.Where(&miauthv2.Session{RefreshToken: input.RefreshToken}).First(&session).Error; err != nil {
+	var session miauth.Session
+	if err := miauth.DB.Where(&miauth.Session{RefreshToken: input.RefreshToken}).First(&session).Error; err != nil {
 		ErrorResponse(c, http.StatusUnauthorized, err, "no session found", "Invalid Session")
 		return
 	}
-	var user miauthv2.User
-	if err := miauthv2.DB.Where(&miauthv2.User{Base: miauthv2.Base{ID: session.UserID}}).First(&user).Error; err != nil {
+	var user miauth.User
+	if err := miauth.DB.Where(&miauth.User{Base: miauth.Base{ID: session.UserID}}).First(&user).Error; err != nil {
 		ErrorResponse(c, http.StatusUnauthorized, err, "no user found", "Invalid User")
 		return
 	}
-	accessToken, expiresIn, err := miauthv2.TokenizeAccessToken(user.ID.String(), user.Email)
+	accessToken, expiresIn, err := miauth.TokenizeAccessToken(user.ID.String(), user.Email)
 	if err != nil {
 		ErrorResponse(c, http.StatusInternalServerError, err, "Cannot tokenize access token", "Wrong tokenize process")
 		return
 	}
-	refreshToken, err := miauthv2.TokenizeRefreshToken(user.ID.String(), user.Email)
+	refreshToken, err := miauth.TokenizeRefreshToken(user.ID.String(), user.Email)
 	if err != nil {
 		ErrorResponse(c, http.StatusInternalServerError, err, "Cannot tokenize access token", "Wrong tokenize process")
 		return
 	}
-	newSession := &miauthv2.Session{
+	newSession := &miauth.Session{
 		UserID:       user.ID,
 		RefreshToken: refreshToken,
 		AccessToken:  accessToken,
 		ExpiresIn:    expiresIn,
 		Scope:        nil,
 	}
-	if err := miauthv2.DB.Create(newSession).Error; err != nil {
+	if err := miauth.DB.Create(newSession).Error; err != nil {
 		ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create session", "Session was not created. Please try again")
 		return
 	}
-	miauthv2.DB.Delete(&session)
+	miauth.DB.Delete(&session)
 
 	c.JSON(http.StatusOK, newSession)
 }

@@ -23,10 +23,10 @@ func init() {
 }
 
 type Base struct {
-	ID        uuid.UUID `gorm:"type:uuid;primary_key;"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	ID        uuid.UUID  `gorm:"type:uuid;primary_key" json:"id"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `sql:"index" json:"deleted_at"`
 }
 
 func (base *Base) BeforeCreate(scope *gorm.Scope) error {
@@ -36,16 +36,16 @@ func (base *Base) BeforeCreate(scope *gorm.Scope) error {
 
 type User struct {
 	Base
-	FirstName string
-	LastName  string
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 
-	Role Role `gorm:"not null"`
+	Role Role `gorm:"not null" json:"role"`
 
-	Username string `gorm:"unique;not null";valid:"max=72,min=6"`
-	Email string `gorm:"unique;not null";valid:"required,email,max=72,min=3"`
+	Username string `gorm:"unique;not null" json:"username"`
+	Email    string `gorm:"unique;not null" json:"email"`
 
-	Credentials []LoginCredential `gorm:"foreignkey:UserID"`
-	Sessions []Session `gorm:"foreignkey:UserID"`
+	Credentials []LoginCredential `gorm:"foreignkey:UserID" json:"credentials"`
+	Sessions    []Session         `gorm:"foreignkey:UserID" json:"sessions"`
 }
 
 const (
@@ -61,9 +61,9 @@ type Role struct {
 
 type LoginCredential struct {
 	Base
-	KindLoginCredential int `gorm:"not null"`
-	LoginCredentialID uuid.UUID `gorm:"not null"`
-	UserID uuid.UUID `gorm:"not null"`
+	KindLoginCredential int       `gorm:"not null" json:"kind_login_credential"`
+	LoginCredentialID   uuid.UUID `gorm:"not null" json:"login_credential_id"`
+	UserID              uuid.UUID `gorm:"not null" json:"user_id"`
 }
 
 type KindLoginCredential interface {
@@ -72,17 +72,17 @@ type KindLoginCredential interface {
 
 type FacebookLoginCredential struct {
 	Base
-	AccountID string `valid:"required"`
+	AccountID string `valid:"required" json:"account_id"`
 }
 
 type GoogleLoginCredential struct {
 	Base
-	AccountID string `valid:"required"`
+	AccountID string `valid:"required" json:"account_id"`
 }
 
 type MiauthLoginCredential struct {
 	Base
-	Hash     string `gorm:"not null";valid:"max=52,min=4"`
+	Hash string `gorm:"not null";valid:"max=52,min=4" json:"hash"`
 }
 
 func (flc FacebookLoginCredential) Kind() int {
@@ -95,17 +95,16 @@ func (mlc MiauthLoginCredential) Kind() int {
 	return MiauthLC
 }
 
-
 type Session struct {
 	Base
-	AccessToken string `gorm:"not null"`
-	RefreshToken string `gorm:"not null"`
-	Scope *string
-	ExpiresIn string `gorm:"not null"`
-	UserID uuid.UUID
+	AccessToken  string    `gorm:"not null" json:"access_token"`
+	RefreshToken string    `gorm:"not null" json:"refresh_token"`
+	Scope        *string   `json:"scope"`
+	ExpiresIn    string    `gorm:"not null" json:"expires_in"`
+	UserID       uuid.UUID `json:"user_id"`
 }
 
-func (user *User) FindCredentialType(kind int) (*KindLoginCredential, error)  {
+func (user *User) FindCredentialType(kind int) (*KindLoginCredential, error) {
 	if err := DB.Preload("Credentials").Find(&user).Error; err != nil {
 		return nil, err
 	}

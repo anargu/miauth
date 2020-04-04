@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-
 const defaultExpirationOffsetTime = 5 * 60 * 60
+
 func expirationOffset(offset *int64) int64 {
 	if offset != nil {
 		return time.Now().Unix() + *offset
@@ -20,20 +20,21 @@ func expirationOffset(offset *int64) int64 {
 }
 
 type CustomClaims struct {
-	UserID string `json:"userId"`
+	UserID    string `json:"userId"`
 	UserEmail string `json:"user_email"`
 	jwt.StandardClaims
 }
-func tokenize(userId string, userEmail string, secret string, expires *int64) (string,error) {
+
+func tokenize(userId string, userEmail string, secret string, expires *int64) (string, error) {
 	var claims CustomClaims
 	if expires == nil {
 		claims = CustomClaims{
-			UserID: userId,
+			UserID:    userId,
 			UserEmail: userEmail,
 		}
 	} else {
 		claims = CustomClaims{
-			UserID: userId,
+			UserID:    userId,
 			UserEmail: userEmail,
 			StandardClaims: jwt.StandardClaims{
 				ExpiresAt: *expires,
@@ -52,14 +53,14 @@ func TokenizeAccessToken(userId string, userEmail string) (string, string, error
 	}
 	exp := expirationOffset(&expIn)
 	token, err := tokenize(userId, userEmail, Config.AccessToken.Secret, &exp)
-	return token, strconv.FormatInt(exp, 10),err
+	return token, strconv.FormatInt(exp, 10), err
 }
 
 func TokenizeRefreshToken(userId string, userEmail string) (string, error) {
 	return tokenize(userId, userEmail, Config.RefreshToken.Secret, nil)
 }
 
-func TokenizeResetEmailToken(userId string, userEmail string) (string, error)  {
+func TokenizeResetEmailToken(userId string, userEmail string) (string, error) {
 	expIn, err := strconv.ParseInt(Config.ResetPassword.ExpiresIn, 10, 64)
 	if err != nil {
 		return "", err
@@ -68,22 +69,21 @@ func TokenizeResetEmailToken(userId string, userEmail string) (string, error)  {
 	return tokenize(userId, userEmail, Config.ResetPassword.Secret, &exp)
 }
 
-
 func verify(token string, secret string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-		return secret, nil
+		return []byte(secret), nil
 	})
 }
 
-func VerifyAccessToken(token string) (bool, error) {
+func VerifyAccessToken(token string) (*jwt.Token, error) {
 	tokenResult, err := verify(token, Config.AccessToken.Secret)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return tokenResult.Valid, nil
+	return tokenResult, nil
 }
 
 func VerifyRefreshToken(token string) (bool, error) {
