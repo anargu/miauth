@@ -53,6 +53,7 @@ _testmain.go
 # IDEA pls leave me alone
 .idea/
 .idea/*
+.idea/workspace.xml
 
 *.config.v2.yml
 !miauth.config.v2.yml
