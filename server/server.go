@@ -17,9 +17,11 @@ func InitServer() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r = gin.Default()
-	r.Static("/public", "../public")
+	r.Static("/public", "./public")
+	r.LoadHTMLGlob("./public/*.html")
 	BindAPIRoutes()
 
+	fmt.Printf("miauth server running at port: %v\n", miauth.Config.Port)
 	err := r.Run(fmt.Sprintf(":%s", miauth.Config.Port))
 	if err != nil {
 		log.Fatal(err)

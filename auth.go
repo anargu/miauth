@@ -100,8 +100,9 @@ func VerifyResetEmailToken(token string) (*string, error) {
 		return nil, err
 	}
 
-	if claims, ok := tokenResult.Claims.(CustomClaims); ok && tokenResult.Valid {
-		return &claims.UserID, nil
+	if claims, ok := tokenResult.Claims.(jwt.MapClaims); ok && tokenResult.Valid {
+		userId, _ := claims["userId"].(string)
+		return &userId, nil
 	} else {
 		return nil, errors.New("invalid JWT Token")
 	}

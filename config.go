@@ -10,41 +10,43 @@ import (
 	"reflect"
 )
 
+type DOSMJEmailToInputPayload struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
 type DOSMJEmailPayload struct {
 	TemplateName string `yaml:"template_name" json:"template_name"`
 	TemplateData struct {
-		ResetLink string `yaml:"reset_link"`
+		ResetLink string `yaml:"reset_link" json:"reset_link"`
 	} `yaml:"template_data" json:"template_data"`
 	EmailSpecs struct {
-		Subject string `json:"subject"`
-		To struct {
-			Name string `json:"name"`
-			Email string `json:"email"`
-		} `json:"to"`
+		Subject string                     `json:"subject"`
+		To      []DOSMJEmailToInputPayload `json:"to"`
 	} `yaml:"email_specs" json:"email_specs"`
 }
 type ConfigMiauth struct {
-	Name string
+	Name                    string
 	PublicForgotPasswordURL string `yaml:"public_forgot_password_url"`
-	Port string
-	BCrypt struct {
+	Port                    string
+	BCrypt                  struct {
 		Salt string `yaml:"salt"`
 	} `yaml:"bcrypt"`
 	AccessToken struct {
-		Secret string
+		Secret    string
 		ExpiresIn string `yaml:"expires_in"`
 	} `yaml:"access_token"`
 	RefreshToken struct {
 		Secret string
 	} `yaml:"refresh_token"`
 	ResetPassword struct {
-		ExpiresIn string `yaml:"expires_in"`
-		Secret string
+		ExpiresIn   string `yaml:"expires_in"`
+		Secret      string
 		MailService struct {
 			DOSMJ struct {
-				Method string
+				Method   string
 				Endpoint string
-				Payload DOSMJEmailPayload
+				Payload  DOSMJEmailPayload
 			}
 		} `yaml:"mail_service"`
 	} `yaml:"reset_password"`
@@ -54,15 +56,15 @@ type ConfigMiauth struct {
 	FieldValidations struct {
 		Username struct {
 			Pattern                    string `yaml:"pattern"`
-			Len                        []int `yaml:"len"`
+			Len                        []int  `yaml:"len"`
 			InvalidPatternErrorMessage string `yaml:"invalid_pattern_error_message"`
 		}
 		Password struct {
-			Len                        []int `yaml:"len"`
+			Len                        []int  `yaml:"len"`
 			InvalidPatternErrorMessage string `yaml:"invalid_pattern_error_message"`
 		}
 		Email struct {
-			Len                        []int `yaml:"len"`
+			Len                        []int  `yaml:"len"`
 			InvalidPatternErrorMessage string `yaml:"invalid_pattern_error_message"`
 		}
 	} `yaml:"field_validations"`
@@ -85,7 +87,6 @@ func InitConfig() {
 			log.Fatal(err)
 		}
 	}
-
 
 	validator.MessageMap["miauth_username"] = Config.FieldValidations.Username.InvalidPatternErrorMessage
 	validator.MessageMap["miauth_email"] = Config.FieldValidations.Email.InvalidPatternErrorMessage

@@ -31,8 +31,8 @@ func Send(
 	subject string) error {
 
 	payload := Config.ResetPassword.MailService.DOSMJ.Payload
-	payload.EmailSpecs.To.Email = email
-	payload.EmailSpecs.To.Name = name
+	payload.EmailSpecs.To = []DOSMJEmailToInputPayload{
+		{Name: name, Email: email}}
 	payload.EmailSpecs.Subject = subject
 	payload.TemplateData.ResetLink = data.ResetLink
 

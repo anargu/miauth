@@ -11,8 +11,9 @@ import (
 
 type ForgotRequestInputPayload struct {
 	Username string
-	Email string
+	Email    string
 }
+
 func ForgotRequestEndpoint(c *gin.Context) {
 	var input ForgotRequestInputPayload
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -26,7 +27,7 @@ func ForgotRequestEndpoint(c *gin.Context) {
 	var user miauthv2.User
 	if err := miauthv2.DB.Where(&miauthv2.User{
 		Username: input.Username,
-		Email: input.Email,
+		Email:    input.Email,
 	}).First(&user).Error; err != nil {
 		ErrorResponse(c, http.StatusBadRequest, errors.New("user not found"), "User Not Found", "User not found")
 		return
@@ -50,18 +51,19 @@ func ForgotRequestEndpoint(c *gin.Context) {
 }
 
 type ForgotResutInputPayload struct {
-	Token string `form:"token"`
-	NewPassword string `json:"new_password" binding:"required"`
-	Retypedpassword string `json:"retyped_password" binding:"required"`
+	Token           string `form:"token"`
+	NewPassword     string `form:"new_password" binding:"required"`
+	Retypedpassword string `form:"retyped_password" binding:"required"`
 }
+
 func forgotResetEndpoint(c *gin.Context) {
 	if c.Request.Method == http.MethodGet {
-		c.HTML(http.StatusOK, "../public/reset_password.html", nil)
+		c.HTML(http.StatusOK, "reset_password.html", nil)
 		return
 	} else if c.Request.Method == http.MethodPost {
 		var input ForgotResutInputPayload
 		if err := c.ShouldBind(&input); err != nil {
-			c.HTML(http.StatusBadRequest, "../public/reset_password_result_error.html", nil)
+			c.HTML(http.StatusBadRequest, "reset_password_result_error.html", nil)
 			return
 		}
 		if input.NewPassword != input.Retypedpassword {
@@ -69,7 +71,7 @@ func forgotResetEndpoint(c *gin.Context) {
 			return
 		}
 		if userId, err := miauthv2.VerifyResetEmailToken(input.Token); err != nil {
-			c.JSON(http.StatusUnauthorized, err)
+			c.HTML(http.StatusUnauthorized, "reset_password_result_error.html", nil)
 			return
 		} else {
 			// REMOVING ALL SESSIONS LOGGED IN OF USER
@@ -78,7 +80,7 @@ func forgotResetEndpoint(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, err)
 				return
 			}
-			if err := miauthv2.DB.Where(&miauthv2.Session{UserID:  id}).Delete([]miauthv2.Session{}).Error; err != nil {
+			if err := miauthv2.DB.Where(&miauthv2.Session{UserID: id}).Delete([]miauthv2.Session{}).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, err)
 				return
 			}
@@ -96,15 +98,20 @@ func forgotResetEndpoint(c *gin.Context) {
 			}
 
 			// UPDATING PASSWORD
+			var mlc miauthv2.MiauthLoginCredential
 			if err := miauthv2.DB.Where(&miauthv2.MiauthLoginCredential{
-				Base: miauthv2.Base{ID: loginCredential.LoginCredentialID },
-			}).Update(miauthv2.MiauthLoginCredential{Hash: *hashed}).Error; err != nil {
-				c.HTML(http.StatusBadRequest, "../public/reset_password_result_error.html", nil)
+				Base: miauthv2.Base{ID: loginCredential.LoginCredentialID},
+			}).First(&mlc).Error; err != nil {
+				c.HTML(http.StatusBadRequest, "reset_password_result_error.html", nil)
+				return
+			}
+			if err = miauthv2.DB.Model(&mlc).Update(miauthv2.MiauthLoginCredential{Hash: *hashed}).Error; err != nil {
+				c.HTML(http.StatusBadRequest, "reset_password_result_error.html", nil)
 				return
 			}
 		}
 
-		c.HTML(http.StatusOK, "../public/reset_password_result_success.html", nil)
+		c.HTML(http.StatusOK, "reset_password_result_success.html", nil)
 		return
 	}
 }
