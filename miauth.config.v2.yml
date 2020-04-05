@@ -23,10 +23,10 @@ reset_password:
                 email_specs:
                     subject: 'Modificar Contraseña - MiAuth'
                     to:
-                        email: __variable__
-                        name: __variable__
+                        - email: __variable__
+                          name: __variable__
 db:
-    postgres: '__POSTGRES_ARGS__'
+    postgres: 'host=localhost user=miauth password=miauth dbname=miauth port=9910 sslmode=disable'
 field_validations:
     username:
         pattern: only_alphanumeric_no_space_values
