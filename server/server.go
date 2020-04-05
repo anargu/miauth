@@ -6,11 +6,16 @@ import (
 	"github.com/anargu/miauth"
 	"github.com/gin-gonic/gin"
 	"log"
+	"os"
 )
 
 var r *gin.Engine
 
 func InitServer() {
+	isDebug := os.Getenv("DEBUG") == "true"
+	if !isDebug {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r = gin.Default()
 	r.Static("/public", "../public")
 	BindAPIRoutes()

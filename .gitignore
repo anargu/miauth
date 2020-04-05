@@ -60,3 +60,7 @@ _testmain.go
 miauth
 
 migrations/*
+*.compose.yml
+!miauth.compose.yml
+*.postgres.env
+!postgres.env
