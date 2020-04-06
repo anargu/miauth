@@ -246,7 +246,13 @@ func SignupEndpoint(c *gin.Context) {
 		{
 			user = miauth.User{Username: *input.Username, Email: *input.Email, Role: role}
 			if err := miauth.DB.Create(&user).Error; err != nil {
-				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User", "Cannot process your user information. Please try again in a moment")
+				if _err := miauth.ValidateDuplicateErrorInField(err, "username"); _err != nil {
+					SendError(c, http.StatusBadRequest, _err)
+				} else if _err = miauth.ValidateDuplicateErrorInField(err, "email"); _err != nil {
+					SendError(c, http.StatusBadRequest, _err)
+				} else {
+					ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User", "Cannot process your user information. Please try again in a moment")
+				}
 				tx.Rollback()
 				return
 			}
@@ -285,7 +291,13 @@ func SignupEndpoint(c *gin.Context) {
 		{
 			user = miauth.User{Username: *input.Username, Email: *input.Email, Role: role}
 			if err := miauth.DB.Create(&user).Error; err != nil {
-				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User", "Cannot process your user information. Please try again in a moment")
+				if _err := miauth.ValidateDuplicateErrorInField(err, "username"); _err != nil {
+					SendError(c, http.StatusBadRequest, _err)
+				} else if _err = miauth.ValidateDuplicateErrorInField(err, "email"); _err != nil {
+					SendError(c, http.StatusBadRequest, _err)
+				} else {
+					ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User", "Cannot process your user information. Please try again in a moment")
+				}
 				tx.Rollback()
 				return
 			}
