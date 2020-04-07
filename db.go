@@ -54,11 +54,17 @@ func RunMigration() {
 	}
 }
 
-func ValidateDuplicateErrorInField(err error, fieldName string) error {
+func ValidateDuplicateErrorInField(err error, fieldName string, customErrorMessage *string) error {
 	if pqErr, ok := err.(*pq.Error); ok {
 		if strings.Contains(pqErr.Detail, "already exists") && strings.Contains(pqErr.Detail, fieldName) {
+			var um string
+			if customErrorMessage != nil {
+				um = *customErrorMessage
+			} else {
+				um = fmt.Sprintf("%s already taken. Try another one", fieldName)
+			}
 			return ErrorMessage{
-				UserMessage:      fmt.Sprintf("%s already taken. Try another one", fieldName),
+				UserMessage:      um,
 				ErrorDescription: pqErr.Detail,
 				Name:             pqErr.Message,
 			}

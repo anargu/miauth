@@ -1,7 +1,7 @@
 version: '3'
 services:
     miauth:
-        image: anargu101/miauth:0.9.0
+        image: anargu101/miauth:0.9.1
         ports:
             - "8112:8112"
         depends_on:

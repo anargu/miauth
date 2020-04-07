@@ -72,12 +72,12 @@ type KindLoginCredential interface {
 
 type FacebookLoginCredential struct {
 	Base
-	AccountID string `valid:"required" json:"account_id"`
+	AccountID string `gorm:"unique;not null" valid:"required" json:"account_id"`
 }
 
 type GoogleLoginCredential struct {
 	Base
-	AccountID string `valid:"required" json:"account_id"`
+	AccountID string `gorm:"unique;not null" valid:"required" json:"account_id"`
 }
 
 type MiauthLoginCredential struct {
