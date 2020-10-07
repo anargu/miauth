@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/anargu/miauth"
 	"github.com/anargu/miauth/server"
 )
@@ -15,6 +17,15 @@ func main() {
 	miauth.RunMigration()
 	defer miauth.CloseDB()
 
+	argsWithoutProg := os.Args[1:]
 	// third: run the server. That's it!
-	server.InitServer()
+	if len(argsWithoutProg) > 0 {
+		if argsWithoutProg[0] == "grpc" {
+			server.InitGrpcServer()
+		} else {
+			server.InitServer()
+		}
+	} else {
+		server.InitServer()
+	}
 }

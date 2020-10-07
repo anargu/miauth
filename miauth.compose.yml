@@ -1,7 +1,60 @@
 version: '3'
 services:
-    miauth:
-        image: anargu101/miauth:0.9.1
+    miauth-grpc:
+        image: anargu101/miauth:0.9.2
+        command: grpc
+        ports:
+            - "50051:50051"
+        depends_on:
+            - db
+        networks:
+            - miauth-backend
+        environment:
+            GRPC_PORT: '50051'
+            DEBUG: 'true'
+            MIAUTH_CONFIG: |
+                name: HelloMyMiauthImplementation
+                public_forgot_password_url: http://localhost:8112/forgot/reset
+                port: 8112
+                bcrypt:
+                    salt: '10'
+                access_token:
+                    secret: m14uth
+                    expires_in: '86400'
+                refresh_token:
+                    enabled: true # or false to disable refresh_token
+                    secret: m14uth-f5
+                reset_password:
+                    expires_in: '600' # 10 min to reset password
+                    secret: 'm14uth-reset' # 10 min to reset password
+                    mail_service:
+                        dosmj:
+                            method: POST
+                            endpoint: http://localhost:4000/email/send
+                            payload:
+                                template_name: '__required_by_dosmj_email_template_name__'
+                                template_data:
+                                    reset_link: __dinamic__
+                                email_specs:
+                                    subject: 'Modificar Contraseña - MiAuth'
+                                    to:
+                                        - email: __variable__
+                                          name: __variable__
+                db:
+                    postgres: 'host=db user=miauth password=miauth dbname=miauth port=5432 sslmode=disable'
+                field_validations:
+                    username:
+                        pattern: only_alphanumeric_no_space_values
+                        len: [6, 72]
+                        invalid_pattern_error_message: 'Invalid username, it should contain between 6 and 72 alphanumeric characters. Only use alphanumeric characters.'
+                    email:
+                        len: [3, 72]
+                        invalid_pattern_error_message: 'Invalid email, please type a correct email.'
+                    password:
+                        len: [4, 52]
+                        invalid_pattern_error_message: 'Invalid password. Password should contain between 4 and 52 characters'
+    miauth-api:
+        image: anargu101/miauth:0.9.2
         ports:
             - "8112:8112"
         depends_on:

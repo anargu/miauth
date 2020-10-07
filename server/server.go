@@ -1,12 +1,18 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/anargu/miauth"
-	"github.com/gin-gonic/gin"
+	"github.com/dgrijalva/jwt-go"
 	"log"
+	"net"
 	"os"
+
+	"github.com/anargu/miauth"
+	pb "github.com/anargu/miauth/proto"
+	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
 )
 
 var r *gin.Engine
@@ -71,4 +77,46 @@ func ErrorResponse(c *gin.Context, code int, err error, description string, user
 		UserMessage:      userMessage,
 	})
 	return
+}
+
+// server is used to implement helloworld.GreeterServer.
+type grpcServer struct {
+	pb.UnimplementedMiAuthServer
+}
+
+func (s *grpcServer) VerifyToken(ctx context.Context, in *pb.ValidationInput) (*pb.ValidationResult, error) {
+	log.Printf("Received: %v", in.AccessToken)
+
+	if in != nil {
+		var tk *jwt.Token
+		var err error
+		if tk, err = miauth.VerifyAccessToken(in.AccessToken); err != nil || !tk.Valid {
+			if err == nil {
+				err = errors.New("invalid token")
+				return nil, err
+			} else {
+				return nil, err
+			}
+		} else {
+			claims := tk.Claims.(jwt.MapClaims)
+			return &pb.ValidationResult{IsOk: true, UserEmail: claims["user_email"].(string), UserMiauthID: claims["userId"].(string)}, nil
+		}
+	}
+	return nil, errors.New("not input")
+}
+
+func InitGrpcServer() {
+	grpcPort := os.Getenv("GRPC_PORT")
+	if grpcPort == "" {
+		panic("Not GRPC_PORT setted")
+	}
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	pb.RegisterMiAuthServer(s, &grpcServer{})
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.6.2
 	github.com/go-playground/assert/v2 v2.0.1
 	github.com/go-resty/resty/v2 v2.2.0
+	github.com/golang/protobuf v1.4.1
 	github.com/jinzhu/gorm v1.9.12
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible
@@ -16,6 +17,8 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/syssam/go-validator v0.0.0-20200402090754-f38ade42a64a
 	golang.org/x/crypto v0.0.0-20191205180655-e7c4368fe9dd
+	google.golang.org/grpc v1.32.0
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.2.8
 )
