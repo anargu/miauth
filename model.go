@@ -2,11 +2,12 @@ package miauth
 
 import (
 	"errors"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/satori/go.uuid"
 	"regexp"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+	uuid "github.com/satori/go.uuid"
 )
 
 var OnlyAlphanumericNoSpaceValues = "only_alphanumeric_no_space_values"
@@ -52,6 +53,7 @@ const (
 	MiauthLC = iota + 1
 	FacebookLC
 	GoogleLC
+	AppleLC
 )
 
 type Role struct {
@@ -68,6 +70,11 @@ type LoginCredential struct {
 
 type KindLoginCredential interface {
 	Kind() int
+}
+
+type AppleLoginCredential struct {
+	Base
+	AccountID string `gorm:"unique;not null" valid:"required" json:"account_id"`
 }
 
 type FacebookLoginCredential struct {
@@ -90,6 +97,9 @@ func (flc FacebookLoginCredential) Kind() int {
 }
 func (glc GoogleLoginCredential) Kind() int {
 	return GoogleLC
+}
+func (alc AppleLoginCredential) Kind() int {
+	return AppleLC
 }
 func (mlc MiauthLoginCredential) Kind() int {
 	return MiauthLC
@@ -114,6 +124,7 @@ func (user *User) FindCredentialType(kind int) (*KindLoginCredential, error) {
 	var miauthLoginCredential MiauthLoginCredential
 	var facebookLoginCredential FacebookLoginCredential
 	var googleLoginCredential GoogleLoginCredential
+	var appleLoginCredential AppleLoginCredential
 
 	for _, credential := range user.Credentials {
 		if credential.KindLoginCredential == kind {
@@ -137,6 +148,12 @@ func (user *User) FindCredentialType(kind int) (*KindLoginCredential, error) {
 					Base: Base{ID: credential.LoginCredentialID},
 				}).First(&googleLoginCredential)
 				loginCredential = googleLoginCredential
+				return &loginCredential, nil
+			case AppleLC:
+				DB.Where(&AppleLoginCredential{
+					Base: Base{ID: credential.LoginCredentialID},
+				}).First(&appleLoginCredential)
+				loginCredential = appleLoginCredential
 				return &loginCredential, nil
 			}
 			break

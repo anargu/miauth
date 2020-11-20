@@ -3,11 +3,13 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+
 	"github.com/anargu/miauth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
 )
 
 type ThidPartyCredential struct {
@@ -44,107 +46,46 @@ func LoginEndpoint(c *gin.Context) {
 	}
 
 	switch input.Kind {
+	case "apple":
+		handleThirdPartyAction(
+			c,
+			credentials,
+			"Apple ID Account not found",
+			func(thirdPartyAccountID *string) (*uuid.UUID, error) {
+				var alc miauth.AppleLoginCredential
+				if err := miauth.DB.Where(miauth.AppleLoginCredential{AccountID: *thirdPartyAccountID}).First(&alc).Error; err != nil {
+					return nil, err
+				}
+				return &alc.ID, nil
+			},
+		)
 	case "facebook":
-		var thirdPartyCredential ThidPartyCredential
-		if err := json.Unmarshal(credentials, &thirdPartyCredential); err != nil {
-			ErrorResponse(c, http.StatusInternalServerError, err, "Cannot process input data", "Values sent are invalid")
-			return
-		}
-		if thirdPartyCredential.ThirdPartyAccountID == nil {
-			ErrorResponse(c, http.StatusBadRequest, err, "Missed Params", "Missed parameters")
-			return
-		}
-		var flc miauth.FacebookLoginCredential
-		if err := miauth.DB.Where(miauth.FacebookLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}).First(&flc).Error; err != nil {
-			ErrorResponse(c, http.StatusBadRequest, err, "FB ID Account not found", "FB ID Account not found")
-			return
-		}
-		var lc miauth.LoginCredential
-		if err := miauth.DB.Where(miauth.LoginCredential{LoginCredentialID: flc.ID}).First(&lc).Error; err != nil {
-			ErrorResponse(c, http.StatusBadRequest, err, "FB ID to User Data Relation not found", "User not found")
-			return
-		}
-		var user miauth.User
-		if err := miauth.DB.Where(&miauth.User{Base: miauth.Base{ID: lc.UserID}}).First(&user).Error; err != nil {
-			ErrorResponse(c, http.StatusBadRequest, err, "User Data Relation not found", "User not found")
-			return
-		}
-
-		accessToken, expString, err := miauth.TokenizeAccessToken(user.ID.String(), user.Email)
-		if err != nil {
-			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
-			return
-		}
-		refreshToken, err := miauth.TokenizeRefreshToken(user.ID.String(), user.Email)
-		if err != nil {
-			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
-			return
-		}
-		// create login session
-		session := miauth.Session{
-			UserID:       user.ID,
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-			ExpiresIn:    expString,
-		}
-		if err := miauth.DB.Create(&session).Error; err != nil {
-			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
-			return
-		}
-
-		c.JSON(http.StatusOK, session)
-		return
+		handleThirdPartyAction(
+			c,
+			credentials,
+			"Facebook ID Account not found",
+			func(thirdPartyAccountID *string) (*uuid.UUID, error) {
+				var flc miauth.FacebookLoginCredential
+				if err := miauth.DB.Where(miauth.FacebookLoginCredential{AccountID: *thirdPartyAccountID}).First(&flc).Error; err != nil {
+					return nil, err
+				}
+				return &flc.ID, nil
+			},
+		)
 	case "google":
-		var thirdPartyCredential ThidPartyCredential
-		if err := json.Unmarshal(credentials, &thirdPartyCredential); err != nil {
-			ErrorResponse(c, http.StatusInternalServerError, err, "Cannot process input data", "Values sent are invalid")
-			return
-		}
-		if thirdPartyCredential.ThirdPartyAccountID == nil {
-			ErrorResponse(c, http.StatusBadRequest, err, "Missed Params", "Missed parameters")
-			return
-		}
-		var glc miauth.GoogleLoginCredential
-		if err := miauth.DB.Where(miauth.GoogleLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}).First(&glc).Error; err != nil {
-			ErrorResponse(c, http.StatusBadRequest, err, "FB ID Account not found", "FB ID Account not found")
-			return
-		}
-		var lc miauth.LoginCredential
-		if err := miauth.DB.Where(miauth.LoginCredential{LoginCredentialID: glc.ID}).First(&lc).Error; err != nil {
-			ErrorResponse(c, http.StatusBadRequest, err, "FB ID to User Data Relation not found", "User not found")
-			return
-		}
-		var user miauth.User
-		if err := miauth.DB.Where(&miauth.User{Base: miauth.Base{ID: lc.UserID}}).First(&user).Error; err != nil {
-			ErrorResponse(c, http.StatusBadRequest, err, "User Data Relation not found", "User not found")
-			return
-		}
+		handleThirdPartyAction(
+			c,
+			credentials,
+			"Google ID Account not found",
+			func(thirdPartyAccountID *string) (*uuid.UUID, error) {
+				var glc miauth.GoogleLoginCredential
+				if err := miauth.DB.Where(miauth.GoogleLoginCredential{AccountID: *thirdPartyAccountID}).First(&glc).Error; err != nil {
+					return nil, err
+				}
 
-		accessToken, expString, err := miauth.TokenizeAccessToken(user.ID.String(), user.Email)
-		if err != nil {
-			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
-			return
-		}
-		refreshToken, err := miauth.TokenizeRefreshToken(user.ID.String(), user.Email)
-		if err != nil {
-			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
-			return
-		}
-		// create login session
-		session := miauth.Session{
-			UserID:       user.ID,
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-			ExpiresIn:    expString,
-		}
-		if err := miauth.DB.Create(&session).Error; err != nil {
-			ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
-			return
-		}
-
-		c.JSON(http.StatusOK, session)
-		return
-		break
+				return &glc.ID, nil
+			},
+		)
 	case "miauth":
 		var miauthCredential MiauthCredential
 		if err := json.Unmarshal(credentials, &miauthCredential); err != nil {
@@ -202,6 +143,70 @@ func LoginEndpoint(c *gin.Context) {
 		ErrorResponse(c, http.StatusBadRequest, err, "Incorrect Credential Type", "Wrong parameters. Are you hacker?")
 		return
 	}
+}
+
+func handleThirdPartyAction(
+	c *gin.Context,
+	credentials json.RawMessage,
+	notFoundMessage string,
+	getLoginCredentialID func(thirdPartyAccountID *string) (*uuid.UUID, error)) {
+
+	var err error
+	var thirdPartyCredential ThidPartyCredential
+
+	if err := json.Unmarshal(credentials, &thirdPartyCredential); err != nil {
+		ErrorResponse(c, http.StatusInternalServerError, err, "Cannot process input data", "Values sent are invalid")
+		return
+	}
+	if thirdPartyCredential.ThirdPartyAccountID == nil {
+		ErrorResponse(c, http.StatusBadRequest, err, "Missed Params", "Missed parameters")
+		return
+	}
+	tlcUUID, err := getLoginCredentialID(thirdPartyCredential.ThirdPartyAccountID)
+	if err != nil {
+		ErrorResponse(c, http.StatusBadRequest, err, notFoundMessage, notFoundMessage)
+		return
+	}
+	var glc miauth.GoogleLoginCredential
+	if err := miauth.DB.Where(miauth.GoogleLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}).First(&glc).Error; err != nil {
+		ErrorResponse(c, http.StatusBadRequest, err, "FB ID Account not found", "FB ID Account not found")
+		return
+	}
+	var lc miauth.LoginCredential
+	if err := miauth.DB.Where(miauth.LoginCredential{LoginCredentialID: *tlcUUID}).First(&lc).Error; err != nil {
+		ErrorResponse(c, http.StatusBadRequest, err, "FB ID to User Data Relation not found", "User not found")
+		return
+	}
+	var user miauth.User
+	if err := miauth.DB.Where(&miauth.User{Base: miauth.Base{ID: lc.UserID}}).First(&user).Error; err != nil {
+		ErrorResponse(c, http.StatusBadRequest, err, "User Data Relation not found", "User not found")
+		return
+	}
+
+	accessToken, expString, err := miauth.TokenizeAccessToken(user.ID.String(), user.Email)
+	if err != nil {
+		ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
+		return
+	}
+	refreshToken, err := miauth.TokenizeRefreshToken(user.ID.String(), user.Email)
+	if err != nil {
+		ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
+		return
+	}
+	// create login session
+	session := miauth.Session{
+		UserID:       user.ID,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresIn:    expString,
+	}
+	if err := miauth.DB.Create(&session).Error; err != nil {
+		ErrorResponse(c, http.StatusInternalServerError, err, err.Error(), err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, session)
+	return
 }
 
 type SignupInputPayload struct {
