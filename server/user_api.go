@@ -236,6 +236,56 @@ func SignupEndpoint(c *gin.Context) {
 		return
 	}
 	switch input.Kind {
+	case "apple":
+		var thirdPartyCredential ThidPartyCredential
+		if err := json.Unmarshal(credentials, &thirdPartyCredential); err != nil {
+			ErrorResponse(c, http.StatusInternalServerError, err, "Cannot process input data", "Values sent are invalid")
+			return
+		}
+		if thirdPartyCredential.ThirdPartyAccountID == nil {
+			ErrorResponse(c, http.StatusBadRequest, err, "Missed Params", "Missed parameters")
+			return
+		}
+		tx := miauth.DB.Begin()
+		var user miauth.User
+		{
+			user = miauth.User{Username: *input.Username, Email: *input.Email, Role: role}
+			if err := miauth.DB.Create(&user).Error; err != nil {
+				duplicateUsernameErrorMessage := "It seems that username have been taken."
+				if _err := miauth.ValidateDuplicateErrorInField(err, "username", &duplicateUsernameErrorMessage); _err != nil {
+					SendError(c, http.StatusBadRequest, _err)
+				} else if _err = miauth.ValidateDuplicateErrorInField(err, "email", nil); _err != nil {
+					SendError(c, http.StatusBadRequest, _err)
+				} else {
+					ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User", "Cannot process your user information. Please try again in a moment")
+				}
+				tx.Rollback()
+				return
+			}
+			alc := miauth.AppleLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}
+			if err := miauth.DB.Create(&alc).Error; err != nil {
+				duplicateThirdPartyAccountErrorMessage := "It seems that Facebook Account have been already signed up."
+				if _err := miauth.ValidateDuplicateErrorInField(err, "account_id", &duplicateThirdPartyAccountErrorMessage); _err != nil {
+					SendError(c, http.StatusBadRequest, _err)
+				} else {
+					ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
+				}
+				tx.Rollback()
+				return
+			}
+			lc := miauth.LoginCredential{
+				UserID:              user.ID,
+				KindLoginCredential: miauth.AppleLC,
+				LoginCredentialID:   alc.ID}
+			if err := miauth.DB.Create(&lc).Error; err != nil {
+				ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
+				tx.Rollback()
+				return
+			}
+		}
+		tx.Commit()
+		c.JSON(http.StatusOK, user)
+		return
 	case "facebook":
 		var thirdPartyCredential ThidPartyCredential
 		if err := json.Unmarshal(credentials, &thirdPartyCredential); err != nil {
@@ -251,7 +301,8 @@ func SignupEndpoint(c *gin.Context) {
 		{
 			user = miauth.User{Username: *input.Username, Email: *input.Email, Role: role}
 			if err := miauth.DB.Create(&user).Error; err != nil {
-				if _err := miauth.ValidateDuplicateErrorInField(err, "username", nil); _err != nil {
+				duplicateUsernameErrorMessage := "It seems that username have been taken."
+				if _err := miauth.ValidateDuplicateErrorInField(err, "username", duplicateUsernameErrorMessage); _err != nil {
 					SendError(c, http.StatusBadRequest, _err)
 				} else if _err = miauth.ValidateDuplicateErrorInField(err, "email", nil); _err != nil {
 					SendError(c, http.StatusBadRequest, _err)
@@ -263,8 +314,8 @@ func SignupEndpoint(c *gin.Context) {
 			}
 			flc := miauth.FacebookLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}
 			if err := miauth.DB.Create(&flc).Error; err != nil {
-				duplicateErrorMessage := "It seems that Facebook Account have been already signed up."
-				if _err := miauth.ValidateDuplicateErrorInField(err, "account_id", &duplicateErrorMessage); _err != nil {
+				duplicateThirdPartyAccountErrorMessage := "It seems that Facebook Account have been already signed up."
+				if _err := miauth.ValidateDuplicateErrorInField(err, "account_id", &duplicateThirdPartyAccountErrorMessage); _err != nil {
 					SendError(c, http.StatusBadRequest, _err)
 				} else {
 					ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
@@ -301,8 +352,8 @@ func SignupEndpoint(c *gin.Context) {
 		{
 			user = miauth.User{Username: *input.Username, Email: *input.Email, Role: role}
 			if err := miauth.DB.Create(&user).Error; err != nil {
-				duplicateErrorMessage := "It seems that Google Account have been already signed up."
-				if _err := miauth.ValidateDuplicateErrorInField(err, "username", &duplicateErrorMessage); _err != nil {
+				duplicateUsernameErrorMessage := "It seems that username have been taken."
+				if _err := miauth.ValidateDuplicateErrorInField(err, "username", &duplicateUsernameErrorMessage); _err != nil {
 					SendError(c, http.StatusBadRequest, _err)
 				} else if _err = miauth.ValidateDuplicateErrorInField(err, "email", nil); _err != nil {
 					SendError(c, http.StatusBadRequest, _err)
@@ -314,7 +365,9 @@ func SignupEndpoint(c *gin.Context) {
 			}
 			glc := miauth.GoogleLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}
 			if err := miauth.DB.Create(&glc).Error; err != nil {
-				if _err := miauth.ValidateDuplicateErrorInField(err, "account_id", nil); _err != nil {
+				duplicateThirdPartyAccountErrorMessage := "It seems that Google Account have been already signed up."
+
+				if _err := miauth.ValidateDuplicateErrorInField(err, "account_id", duplicateThirdPartyAccountErrorMessage); _err != nil {
 					SendError(c, http.StatusBadRequest, _err)
 				} else {
 					ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
