@@ -38,6 +38,7 @@ var Tables = []interface{}{
 	MiauthLoginCredential{},
 	GoogleLoginCredential{},
 	FacebookLoginCredential{},
+	AppleLoginCredential{},
 }
 
 var roles = []string{
