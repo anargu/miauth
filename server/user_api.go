@@ -302,7 +302,7 @@ func SignupEndpoint(c *gin.Context) {
 			user = miauth.User{Username: *input.Username, Email: *input.Email, Role: role}
 			if err := miauth.DB.Create(&user).Error; err != nil {
 				duplicateUsernameErrorMessage := "It seems that username have been taken."
-				if _err := miauth.ValidateDuplicateErrorInField(err, "username", duplicateUsernameErrorMessage); _err != nil {
+				if _err := miauth.ValidateDuplicateErrorInField(err, "username", &duplicateUsernameErrorMessage); _err != nil {
 					SendError(c, http.StatusBadRequest, _err)
 				} else if _err = miauth.ValidateDuplicateErrorInField(err, "email", nil); _err != nil {
 					SendError(c, http.StatusBadRequest, _err)
@@ -367,7 +367,7 @@ func SignupEndpoint(c *gin.Context) {
 			if err := miauth.DB.Create(&glc).Error; err != nil {
 				duplicateThirdPartyAccountErrorMessage := "It seems that Google Account have been already signed up."
 
-				if _err := miauth.ValidateDuplicateErrorInField(err, "account_id", duplicateThirdPartyAccountErrorMessage); _err != nil {
+				if _err := miauth.ValidateDuplicateErrorInField(err, "account_id", &duplicateThirdPartyAccountErrorMessage); _err != nil {
 					SendError(c, http.StatusBadRequest, _err)
 				} else {
 					ErrorResponse(c, http.StatusInternalServerError, err, "Cannot create User Credentials", "Cannot process your user credentials. Please try a different password or try again in a moment")
