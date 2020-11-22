@@ -167,11 +167,6 @@ func handleThirdPartyAction(
 		ErrorResponse(c, http.StatusBadRequest, err, notFoundMessage, notFoundMessage)
 		return
 	}
-	var glc miauth.GoogleLoginCredential
-	if err := miauth.DB.Where(miauth.GoogleLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}).First(&glc).Error; err != nil {
-		ErrorResponse(c, http.StatusBadRequest, err, "FB ID Account not found", "FB ID Account not found")
-		return
-	}
 	var lc miauth.LoginCredential
 	if err := miauth.DB.Where(miauth.LoginCredential{LoginCredentialID: *tlcUUID}).First(&lc).Error; err != nil {
 		ErrorResponse(c, http.StatusBadRequest, err, "FB ID to User Data Relation not found", "User not found")
