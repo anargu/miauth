@@ -2,12 +2,15 @@ package miauth
 
 import (
 	"flag"
-	"github.com/syssam/go-validator"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
+
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
+	//"github.com/gin-gonic/gin/binding"
+	"gopkg.in/yaml.v2"
 )
 
 type DOSMJEmailToInputPayload struct {
@@ -71,6 +74,8 @@ type ConfigMiauth struct {
 }
 
 var Config *ConfigMiauth
+var UsernameValidator validator.Func
+var EmailValidator validator.Func
 
 func InitConfig() {
 	configFilePath := flag.String("config", "miauth.config.v2.yml", "miauth yaml config file")
@@ -87,36 +92,57 @@ func InitConfig() {
 			log.Fatal(err)
 		}
 	}
-
-	validator.MessageMap["miauth_username"] = Config.FieldValidations.Username.InvalidPatternErrorMessage
-	validator.MessageMap["miauth_email"] = Config.FieldValidations.Email.InvalidPatternErrorMessage
+	
 	usernameMinLen := Config.FieldValidations.Username.Len[0]
 	usernameMaxLen := Config.FieldValidations.Username.Len[1]
+	UsernameValidator = func (fl validator.FieldLevel) bool  {
+		if !fl.Field().IsValid() {
+			return false
+		}
+		parent := fl.Parent()
+		var payload reflect.Value
+		if parent.Kind() == reflect.Ptr {
+			payload =	parent.Elem()
+		} else if parent.Kind() == reflect.Struct {
+			payload = parent
+		} else {
+			return false
+		}
+		if kindAuth := payload.FieldByName("Kind").String(); kindAuth == "miauth" {
+			switch fl.Field().Kind() {
+			case reflect.String:
+				if len(fl.Field().String()) < usernameMinLen || len(fl.Field().String()) > usernameMaxLen {
+					return false
+				}
+				return UsernamePatterns[Config.FieldValidations.Username.Pattern].MatchString(fl.Field().String())
+			}
+			return false
+		} else {
+			return true
+		}
+	}
 
 	emailMinLen := Config.FieldValidations.Email.Len[0]
 	emailMaxLen := Config.FieldValidations.Email.Len[1]
-
-	validator.CustomTypeRuleMap.Set("miauth_username", func(v reflect.Value, o reflect.Value, validTag *validator.ValidTag) bool {
-		switch v.Kind() {
+	EmailValidator = func (fl validator.FieldLevel) bool  {
+		if !fl.Field().IsValid() {
+			return false
+		}
+		switch fl.Field().Kind() {
 		case reflect.String:
-			if len(v.String()) < usernameMinLen || len(v.String()) > usernameMaxLen {
+			if len(fl.Field().String()) < emailMinLen || len(fl.Field().String()) > emailMaxLen {
 				return false
 			}
-			return UsernamePatterns[Config.FieldValidations.Username.Pattern].MatchString(v.String())
+			return RxEmail.MatchString(fl.Field().String())
 		}
 		return false
-	})
-	validator.CustomTypeRuleMap.Set("miauth_email", func(v reflect.Value, o reflect.Value, validTag *validator.ValidTag) bool {
-		switch v.Kind() {
-		case reflect.String:
-			if len(v.String()) < emailMinLen || len(v.String()) > emailMaxLen {
-				return false
-			}
-			return RxEmail.MatchString(v.String())
-		}
-		return false
-	})
+	}
 
+	
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("miauth_username", UsernameValidator)
+		v.RegisterValidation("miauth_email", EmailValidator)
+	}
 }
 
 func ReadConfig(data string) error {

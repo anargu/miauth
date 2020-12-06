@@ -39,6 +39,7 @@ var Tables = []interface{}{
 	GoogleLoginCredential{},
 	FacebookLoginCredential{},
 	AppleLoginCredential{},
+	UserCounter{},
 }
 
 var roles = []string{

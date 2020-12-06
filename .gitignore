@@ -64,3 +64,4 @@ migrations/*
 !miauth.compose.yml
 *.postgres.env
 !postgres.env
+.vim*

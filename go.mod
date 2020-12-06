@@ -6,6 +6,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.2
 	github.com/go-playground/assert/v2 v2.0.1
+	github.com/go-playground/validator/v10 v10.2.0
 	github.com/go-resty/resty/v2 v2.2.0
 	github.com/golang/protobuf v1.4.1
 	github.com/jinzhu/gorm v1.9.12
@@ -20,5 +21,6 @@ require (
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
+	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.2.8
 )

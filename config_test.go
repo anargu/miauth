@@ -1,10 +1,11 @@
 package miauth_test
 
 import (
-	miauthv2 "github.com/anargu/miauth"
-	"github.com/go-playground/assert/v2"
 	"io/ioutil"
 	"testing"
+
+	miauthv2 "github.com/anargu/miauth"
+	"github.com/go-playground/assert/v2"
 )
 
 func init() {

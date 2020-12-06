@@ -20,12 +20,20 @@ func setupTestServer(method string, path string, handler gin.HandlerFunc) *gin.E
 	return r
 }
 
-func setupDBConfig(t *testing.T) {
+func SetupConfig() error {
 	data, err := ioutil.ReadFile("../miauth.config.v2.yml")
 	if err != nil {
-		t.Fatal(err)
+		return err
 	}
 	if err := miauthv2.ReadConfig(string(data)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func setupDBConfig(t *testing.T) {
+	err := SetupConfig()
+	if err != nil {
 		t.Fatal(err)
 	}
 	miauthv2.Config.DB.Postgres = "user=miauth password=miauth DB.name=miauth port=9910 sslmode=disable"

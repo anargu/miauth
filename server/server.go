@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"log"
 	"net"
 	"os"
+
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/anargu/miauth"
 	pb "github.com/anargu/miauth/proto"

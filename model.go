@@ -2,6 +2,7 @@ package miauth
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"time"
 
@@ -89,7 +90,7 @@ type GoogleLoginCredential struct {
 
 type MiauthLoginCredential struct {
 	Base
-	Hash string `gorm:"not null";valid:"max=52,min=4" json:"hash"`
+	Hash string `gorm:"not null" valid:"max=52,min=4" json:"hash"`
 }
 
 func (flc FacebookLoginCredential) Kind() int {
@@ -103,6 +104,10 @@ func (alc AppleLoginCredential) Kind() int {
 }
 func (mlc MiauthLoginCredential) Kind() int {
 	return MiauthLC
+}
+
+type UserCounter struct {
+	ID uint64 `gorm:"primaryKey"`
 }
 
 type Session struct {
@@ -161,4 +166,14 @@ func (user *User) FindCredentialType(kind int) (*KindLoginCredential, error) {
 	}
 
 	return nil, errors.New("no LoginCredential found")
+}
+
+func GenerateGenericUsername() (*string, error) {
+	uc := UserCounter{}
+	result := DB.Create(&uc)
+	if result.Error != nil{
+		return nil, result.Error
+	}
+	newUsername := fmt.Sprintf("%s_%d", "user", uc.ID)
+	return &newUsername, nil
 }
