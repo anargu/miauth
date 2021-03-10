@@ -9,6 +9,3 @@ else
 	echo "could not found container $CONTAINER_NAME..." 
 	docker-compose -f test-compose.yml up --d 
 fi
-DEBUG=true go test
-echo "stopping container..." 
-docker container stop $CONTAINER_NAME
