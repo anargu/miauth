@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -22,9 +23,17 @@ var (
 	//t1, t2, t3, t4, t5 time.Time
 )
 
-var withDB = flag.Bool("with-db", false, "tests made connecting with db")
+var withDB *bool
 
-func init() {
+func TestMain(m *testing.M) {
+	withDB = flag.Bool("with-db", false, "tests made connecting with db")
+	flag.Parse()
+	fmt.Printf(">> flag with-db: %v\n", *withDB)
+	Init()
+	os.Exit(m.Run())
+}
+
+func Init() {
 	var err error
 
 	if *withDB {
@@ -36,6 +45,7 @@ func init() {
 
 		runTestMigration()
 	}
+
 }
 
 func OpenTestConnection() (*gorm.DB, error) {
@@ -253,7 +263,7 @@ func TestUsernameRulesAtSignup(t *testing.T) {
 	// first initialize config params
 	miauthv2.InitConfig()
 
-	testCases := map[string]bool {
+	testCases := map[string]bool{
 		`{ 
 				"kind": "miauth",
 				"role": "user",
@@ -315,7 +325,7 @@ func TestUsernameRulesAtSignup(t *testing.T) {
 		}`: false,
 	}
 	for payload, okResponse := range testCases {
-		
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request, _ = http.NewRequest("POST", "/", strings.NewReader(payload))
@@ -329,10 +339,19 @@ func TestUsernameRulesAtSignup(t *testing.T) {
 			assert.Equal(t, 200, w.Code)
 		}
 	}
-	
+
 }
 
 func TestUsernameGenerated4ThirdParties(t *testing.T) {
+	// type UserInput map[string]string
+	// userCases := []UserInput{
+	// 	{"username": "", "email": "abc@maggie.com", "facebookId": "12345"},
+	// 	{"username": "", "email": "abc@maggie.com", "facebookId": "12345"},
+	// }
+
+	// for i, userCase := range userCases {
+	// 	t.Logf("test case %v", i)
+
+	// }
 
 }
-
