@@ -286,7 +286,7 @@ func handleThirdParthSignUp(
 			break
 		case miauth.FacebookLC:
 			thirdPartyName = "Facebook"
-			flc := miauth.GoogleLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}
+			flc := miauth.FacebookLoginCredential{AccountID: *thirdPartyCredential.ThirdPartyAccountID}
 			errorAtCreateThirdPartyLC = miauth.DB.Create(&flc).Error
 			if errorAtCreateThirdPartyLC == nil {
 				lc.LoginCredentialID = flc.ID
