@@ -65,3 +65,5 @@ migrations/*
 *.postgres.env
 !postgres.env
 .vim*
+
+.vscode/
